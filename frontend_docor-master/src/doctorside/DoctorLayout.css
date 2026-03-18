@@ -1,0 +1,948 @@
+/* ============================================================
+   Doctor Portal Layout — Admin-matching brown/warm theme
+   ============================================================ */
+
+.doctor-container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #ECDED5;
+    font-family: 'Calibri', sans-serif;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────── */
+.doctor-sidebar {
+    width: 260px;
+    background: #8B7154;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    height: 100vh;
+    left: 0;
+    top: 0;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.doctor-sidebar.hidden {
+    width: 0;
+}
+
+.dsidebar-header {
+    padding: 20px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    min-width: 260px;
+}
+
+.dbrand-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+}
+
+.dadmin-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.dlogo-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.dsidebar-header h2 {
+    font-family: 'Calibri', sans-serif;
+    font-size: 1rem;
+    margin: 0;
+    font-weight: 700;
+    line-height: 1.3;
+    color: #F5F1EE;
+    text-align: left;
+    white-space: nowrap;
+}
+
+/* ── Sidebar Nav ────────────────────────────────────────────── */
+.dsidebar-nav {
+    flex: 1;
+    padding: 15px 0;
+    overflow-y: auto;
+    min-width: 260px;
+}
+
+.dnav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    color: #F5F1EE;
+    text-decoration: none;
+    font-family: 'Calibri', sans-serif;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    border-left: 4px solid transparent;
+}
+
+.dnav-item:hover,
+.dnav-item.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-left-color: #F5F1EE;
+}
+
+.dnav-icon {
+    font-size: 1.15rem;
+    color: #F5F1EE;
+    min-width: 22px;
+    flex-shrink: 0;
+}
+
+/* ── Main Content Area ──────────────────────────────────────── */
+.doctor-main {
+    flex: 1;
+    margin-left: 260px;
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.doctor-main.full-width {
+    margin-left: 0;
+}
+
+/* ── Top Navbar ─────────────────────────────────────────────── */
+.doctor-navbar {
+    background: #8B7154;
+    padding: 12px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 64px;
+    color: white;
+}
+
+.dnavbar-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.dsidebar-toggle {
+    background: none;
+    border: none;
+    color: #F5F1EE;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dsidebar-toggle:hover {
+    color: #a48054;
+}
+
+.dpage-title {
+    font-family: 'Calibri', sans-serif;
+    font-size: 1.2rem;
+    color: #F5F1EE;
+    margin: 0;
+    font-weight: 700;
+}
+
+.dnavbar-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* ── Profile Dropdown ───────────────────────────────────────── */
+.dprofile-section {
+    position: relative;
+}
+
+.dprofile-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: none;
+    padding: 6px 14px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #F5F1EE;
+}
+
+.dprofile-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.dprofile-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #5D4E37, #8B7355);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: white;
+}
+
+.dprofile-name {
+    font-family: 'Calibri', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ddropdown-arrow {
+    font-size: 8px;
+    opacity: 0.7;
+}
+
+.dprofile-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    min-width: 200px;
+    z-index: 1000;
+    overflow: hidden;
+    animation: dslideDown 0.2s ease;
+}
+
+@keyframes dslideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.ddropdown-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid #F0EBE3;
+}
+
+.ddropdown-name {
+    font-family: 'Calibri', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: #5D4E37;
+    margin: 0;
+}
+
+.ddropdown-email {
+    font-family: 'Calibri', sans-serif;
+    font-size: 12px;
+    color: #8B7355;
+    margin: 2px 0 0 0;
+}
+
+.ddropdown-item {
+    display: block;
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-family: 'Calibri', sans-serif;
+    font-size: 13px;
+    color: #5D4E37;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.ddropdown-item:hover {
+    background-color: #F8F4F0;
+}
+
+.ddropdown-item.logout {
+    color: #C53030;
+    border-top: 1px solid #F0EBE3;
+}
+
+.ddropdown-item.logout:hover {
+    background-color: #FFF5F5;
+}
+
+/* ── Page Content ───────────────────────────────────────────── */
+.doctor-content {
+    flex: 1;
+    padding: 30px 40px;
+    overflow-y: auto;
+}
+
+/* ── Logout Modal ───────────────────────────────────────────── */
+.dmodal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.dmodal-content {
+    background: white;
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.dmodal-content h3 {
+    font-family: 'Calibri', sans-serif;
+    color: #5D4E37;
+    font-size: 1.2rem;
+    margin: 0 0 10px 0;
+}
+
+.dmodal-content p {
+    color: #777;
+    font-size: 14px;
+    margin: 0 0 24px 0;
+}
+
+.dmodal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+.dmodal-btn {
+    padding: 10px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    font-family: 'Calibri', sans-serif;
+    transition: all 0.2s;
+}
+
+.dmodal-btn.cancel {
+    background: white;
+    border: 1px solid #E0D5C7;
+    color: #5D4E37;
+}
+
+.dmodal-btn.cancel:hover {
+    background: #F8F4F0;
+}
+
+.dmodal-btn.confirm {
+    background: #5D4E37;
+    border: none;
+    color: white;
+}
+
+.dmodal-btn.confirm:hover {
+    background: #4a3e2c;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .doctor-sidebar {
+        width: 0;
+    }
+
+    .doctor-main {
+        margin-left: 0;
+    }
+}
+
+/* ============================================================
+   Page Content Components — Admin-matching warm theme
+   ============================================================ */
+
+/* ── Page Header ────────────────────────────────────────────── */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 24px;
+}
+
+.page-header h1 {
+    font-family: 'Calibri', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #3E2F1C;
+    margin: 0 0 4px 0;
+}
+
+.breadcrumb {
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.82rem;
+    color: #8B7355;
+}
+
+/* ── Stats Grid ─────────────────────────────────────────────── */
+.doc-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.doc-stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid #F0EBE3;
+    box-shadow: 0 2px 8px rgba(93, 78, 55, 0.06);
+    transition: all 0.2s ease;
+}
+
+.doc-stat-card:hover {
+    box-shadow: 0 4px 16px rgba(93, 78, 55, 0.12);
+    border-color: #E0D5C7;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.stat-icon.blue {
+    background: #E8DFD2;
+}
+
+.stat-icon.amber {
+    background: #FEF7E0;
+}
+
+.stat-icon.green {
+    background: #E6F4EA;
+}
+
+.stat-icon.red {
+    background: #FCE8E6;
+}
+
+.stat-content h4 {
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #8B7355;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 0 0 4px 0;
+}
+
+.stat-content .value {
+    font-family: 'Calibri', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #3E2F1C;
+}
+
+/* ── Cards ──────────────────────────────────────────────────── */
+.doc-card {
+    background: white;
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid #F0EBE3;
+    box-shadow: 0 2px 10px rgba(93, 78, 55, 0.06);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.card-header h3 {
+    font-family: 'Calibri', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #3E2F1C;
+    margin: 0;
+}
+
+/* ── Table ──────────────────────────────────────────────────── */
+.doc-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.doc-table thead th {
+    background: #F8F6F2;
+    padding: 10px 16px;
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #8B7355;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #E0D5C7;
+    text-align: left;
+}
+
+.doc-table tbody td {
+    padding: 14px 16px;
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.88rem;
+    color: #3E2F1C;
+    border-bottom: 1px solid #F1EDE7;
+    vertical-align: middle;
+}
+
+.doc-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.doc-table tbody tr:hover {
+    background-color: #FDFBF9;
+}
+
+/* ── Badges ─────────────────────────────────────────────────── */
+.doc-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 20px;
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.doc-badge.pending {
+    background: #FEF7E0;
+    color: #856404;
+}
+
+.doc-badge.approved {
+    background: #E6F4EA;
+    color: #137333;
+}
+
+.doc-badge.in-session {
+    background: #E8F0FE;
+    color: #1A73E8;
+}
+
+.doc-badge.completed {
+    background: #D4EDDA;
+    color: #155724;
+}
+
+.doc-badge.cancelled {
+    background: #FCE8E6;
+    color: #C5221F;
+}
+
+/* ── Buttons ────────────────────────────────────────────────── */
+.doc-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    white-space: nowrap;
+}
+
+.doc-btn.sm {
+    padding: 6px 14px;
+    font-size: 0.78rem;
+}
+
+.doc-btn.primary {
+    background: #5D4E37;
+    color: white;
+}
+
+.doc-btn.primary:hover {
+    background: #4a3e2c;
+}
+
+.doc-btn.success {
+    background: #137333;
+    color: white;
+}
+
+.doc-btn.success:hover {
+    background: #0d5b28;
+}
+
+.doc-btn.danger {
+    background: white;
+    color: #C5221F;
+    border: 1.5px solid #C5221F;
+}
+
+.doc-btn.danger:hover {
+    background: #FFF5F5;
+}
+
+.doc-btn.outline {
+    background: white;
+    color: #5D4E37;
+    border: 1.5px solid #E0D5C7;
+}
+
+.doc-btn.outline:hover {
+    background: #F8F4F0;
+    border-color: #C4B8A6;
+}
+
+.doc-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.doc-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ── Empty State ────────────────────────────────────────────── */
+.doc-empty {
+    text-align: center;
+    padding: 48px 20px;
+}
+
+.doc-empty .empty-icon {
+    font-size: 2.5rem;
+    opacity: 0.4;
+    margin-bottom: 12px;
+}
+
+.doc-empty h4 {
+    font-family: 'Calibri', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #5D4E37;
+    margin: 0 0 6px 0;
+}
+
+.doc-empty p {
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.85rem;
+    color: #8B7355;
+    margin: 0;
+}
+
+/* ── Duty Toggle ────────────────────────────────────────────── */
+.duty-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toggle-label {
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #5D4E37;
+}
+
+.toggle-switch {
+    width: 46px;
+    height: 24px;
+    background: #E0D5C7;
+    border-radius: 12px;
+    position: relative;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.toggle-switch.active {
+    background: #5D4E37;
+}
+
+.toggle-knob {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: left 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.active .toggle-knob {
+    left: 24px;
+}
+
+/* ── Reminders ──────────────────────────────────────────────── */
+.reminder-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.reminder-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #FDFBF9;
+    border-radius: 8px;
+    border: 1px solid #F0EBE3;
+}
+
+.reminder-item.urgent {
+    background: #FFF8F6;
+    border-color: #FFDDD6;
+}
+
+.reminder-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.reminder-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.reminder-text strong {
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.88rem;
+    color: #3E2F1C;
+}
+
+.reminder-text span {
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.78rem;
+    color: #8B7355;
+}
+
+/* ── Schedule Grid ──────────────────────────────────────────── */
+.schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+}
+
+.schedule-card {
+    background: #FDFBF9;
+    border: 1px solid #F0EBE3;
+    border-radius: 12px;
+    padding: 18px;
+    transition: all 0.2s ease;
+}
+
+.schedule-card:hover {
+    border-color: #E0D5C7;
+    box-shadow: 0 4px 12px rgba(93, 78, 55, 0.08);
+}
+
+.sched-date {
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #3E2F1C;
+    margin-bottom: 6px;
+}
+
+.sched-time {
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.82rem;
+    color: #8B7355;
+    margin-bottom: 10px;
+}
+
+.sched-actions {
+    display: flex;
+    gap: 8px;
+}
+
+/* ── Modal ──────────────────────────────────────────────────── */
+.doc-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.doc-modal {
+    background: white;
+    border-radius: 16px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #F0EBE3;
+}
+
+.modal-header h3 {
+    font-family: 'Calibri', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #3E2F1C;
+    margin: 0;
+}
+
+.close-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #F1EDE7;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5F6368;
+    transition: background 0.2s;
+}
+
+.close-btn:hover {
+    background: #E0D5C7;
+}
+
+.modal-body {
+    padding: 24px;
+}
+
+.modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #F0EBE3;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* ── Session / Schedule Form ────────────────────────────────── */
+.session-form .form-group {
+    margin-bottom: 16px;
+}
+
+.session-form label {
+    display: block;
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #5D4E37;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.session-form input[type="text"],
+.session-form input[type="email"],
+.session-form input[type="date"],
+.session-form input[type="time"],
+.session-form textarea,
+.session-form select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #E0D5C7;
+    border-radius: 8px;
+    font-family: 'Calibri', sans-serif;
+    font-size: 0.9rem;
+    color: #3E2F1C;
+    background: #FAFAF7;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.session-form input:focus,
+.session-form textarea:focus,
+.session-form select:focus {
+    outline: none;
+    border-color: #8B7355;
+    box-shadow: 0 0 0 3px rgba(139, 113, 84, 0.1);
+}
+
+.session-form textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #5D4E37;
+    cursor: pointer;
+}
+
+/* ── Chart Container (Calendar panels) ──────────────────────── */
+.chart-container {
+    background: white;
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid #F0EBE3;
+    box-shadow: 0 2px 10px rgba(93, 78, 55, 0.06);
+}

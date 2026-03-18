@@ -17,6 +17,7 @@ class Payment extends Model
     ];
 
     protected $primaryKey = 'payment_id';
+    
     public function transaction()
     {
         return $this->belongsTo(SalesTransaction::class, 'sales_transaction_id');

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>API Connection Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Registration</h2>
+        <button onclick="testRegister()">Register Admin</button>
+        <pre id="register-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Login</h2>
+        <button onclick="testLogin()">Login Admin</button>
+        <pre id="login-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Protected Route (Me)</h2>
+        <button onclick="testMe()">Get Profile</button>
+        <pre id="me-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test Logout</h2>
+        <button onclick="testLogout()">Logout</button>
+        <pre id="logout-result"></pre>
+    </div>
+
+    <script>
+        let authToken = null;
+
+        async function testRegister() {
+            const resultEl = document.getElementById('register-result');
+            resultEl.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/admin/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@test.com',
+                        password: 'password123',
+                        password_confirmation: 'password123',
+                        first_name: 'John',
+                        last_name: 'Doe',
+                        position: 'Administrator'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.data && data.data.token) {
+                    authToken = data.data.token;
+                    resultEl.innerHTML = `<span class="success">✓ Success!</span>\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultEl.innerHTML = `<span class="error">✗ Failed</span>\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultEl.innerHTML = `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function testLogin() {
+            const resultEl = document.getElementById('login-result');
+            resultEl.textContent = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/admin/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'admin@test.com',
+                        password: 'password123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.data && data.data.token) {
+                    authToken = data.data.token;
+                    resultEl.innerHTML = `<span class="success">✓ Success!</span>\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultEl.innerHTML = `<span class="error">✗ Failed</span>\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultEl.innerHTML = `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function testMe() {
+            const resultEl = document.getElementById('me-result');
+            resultEl.textContent = 'Testing...';
+            
+            if (!authToken) {
+                resultEl.innerHTML = '<span class="error">✗ Please login first to get a token</span>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/admin/auth/me', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                resultEl.innerHTML = `<span class="success">✓ Success!</span>\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultEl.innerHTML = `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+
+        async function testLogout() {
+            const resultEl = document.getElementById('logout-result');
+            resultEl.textContent = 'Testing...';
+            
+            if (!authToken) {
+                resultEl.innerHTML = '<span class="error">✗ Please login first to get a token</span>';
+                return;
+            }
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/admin/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+
+                const data = await response.json();
+                authToken = null;
+                resultEl.innerHTML = `<span class="success">✓ Success!</span>\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultEl.innerHTML = `<span class="error">✗ Error: ${error.message}</span>`;
+            }
+        }
+    </script>
+</body>
+</html>

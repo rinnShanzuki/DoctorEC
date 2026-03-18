@@ -7,28 +7,28 @@ use Illuminate\Database\Eloquent\Model;
 class SalesItem extends Model
 {
     protected $fillable = [
+        'product_id',
         'quantity',
         'unit_price',
         'subtotal',
         'st_id',
-        'product_id',
-        'prodres_id',
     ];
 
     protected $primaryKey = 'item_id';
     
-    public function transaction()
-    {
-        return $this->belongsTo(SalesTransaction::class, 'st_id');
-    }
-
+    /**
+     * Get the product for this sales item
+     */
     public function product()
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        return $this->belongsTo(Product::class, 'product_id', 'product_id');
     }
 
-    public function reservation()
+    /**
+     * Get the transaction this item belongs to
+     */
+    public function transaction()
     {
-        return $this->belongsTo(ProductReservation::class, 'prodres_id');
+        return $this->belongsTo(SalesTransaction::class, 'st_id', 'st_id');
     }
 }

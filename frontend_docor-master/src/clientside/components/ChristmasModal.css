@@ -1,0 +1,349 @@
+/* ChristmasModal.css - Christmas Theme */
+.christmas-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 40, 20, 0.8);
+    /* Dark Green tint */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    font-family: 'Poppins', sans-serif;
+    backdrop-filter: blur(5px);
+}
+
+.christmas-auth-box {
+    background: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    width: 780px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(183, 28, 28, 0.3);
+    /* Red shadow */
+    position: relative;
+    border: 2px solid #FFD700;
+    /* Gold border */
+}
+
+.christmas-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    border: none;
+    background: rgba(183, 28, 28, 0.1);
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #B71C1C;
+    /* Dark Red */
+    transition: all 0.3s ease;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.christmas-close-btn:hover {
+    background: #B71C1C;
+    color: white;
+    transform: rotate(90deg);
+}
+
+/* AUTH CONTENT SPLIT */
+.christmas-auth-content {
+    display: flex;
+    flex-direction: row;
+    height: 520px;
+}
+
+/* LEFT SIDE: BRANDING */
+.christmas-auth-left {
+    flex: 1;
+    background: linear-gradient(135deg, #1B5E20 0%, #B71C1C 100%);
+    /* Green to Red */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.christmas-auth-left::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" opacity="0.1"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+}
+
+/* Snowflakes decoration for left side */
+.christmas-auth-left::after {
+    content: '❄️ ❅ ❆';
+    position: absolute;
+    top: 20px;
+    font-size: 2rem;
+    opacity: 0.3;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.christmas-auth-logo {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #FFD700;
+    /* Gold border */
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+    background-color: white;
+}
+
+.christmas-auth-logo:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #FFD700;
+}
+
+.christmas-auth-left h1 {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+    font-weight: 700;
+    position: relative;
+    z-index: 1;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.christmas-auth-left p {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
+    font-style: italic;
+}
+
+/* RIGHT SIDE: FORM */
+.christmas-auth-right {
+    flex: 1.2;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #FFFFFF;
+    background-image: radial-gradient(#B71C1C 0.5px, transparent 0.5px), radial-gradient(#1B5E20 0.5px, #FFFFFF 0.5px);
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    /* Subtle dot pattern */
+}
+
+.christmas-auth-right h2 {
+    color: #B71C1C;
+    /* Christmas Red */
+    margin-bottom: 30px;
+    font-size: 1.6rem;
+    text-align: center;
+    font-weight: 600;
+}
+
+.christmas-auth-right form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.christmas-input-group {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.christmas-input-wrapper {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+.christmas-auth-input {
+    width: 100%;
+    padding: 14px 16px 14px 45px;
+    border-radius: 12px;
+    border: 2px solid #C8E6C9;
+    /* Light Green */
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: #FFFFFF;
+    color: #1B5E20;
+    font-weight: 500;
+    box-sizing: border-box;
+}
+
+.christmas-auth-input::placeholder {
+    color: #81C784;
+    font-weight: 400;
+}
+
+.christmas-auth-input:focus {
+    outline: none;
+    border-color: #2E7d32;
+    /* Green */
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+    background: #FFFFFF;
+    transform: translateY(-1px);
+}
+
+.christmas-auth-input:hover {
+    border-color: #FFD700;
+    /* Gold on hover */
+}
+
+.christmas-input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #B71C1C;
+    /* Red Icon */
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.christmas-auth-input:focus+.christmas-input-icon {
+    color: #2E7d32;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.christmas-login-btn {
+    background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+    /* Red Gradient */
+    color: white;
+    border: 2px solid #FFD700;
+    /* Gold Border */
+    padding: 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    height: 50px;
+    font-size: 1rem;
+    margin-top: 10px;
+    overflow: hidden;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.christmas-login-btn:hover {
+    background: linear-gradient(135deg, #B71C1C 0%, #880E4F 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(211, 47, 47, 0.3);
+}
+
+.christmas-login-btn:active {
+    transform: translateY(0);
+}
+
+.btn-icon {
+    transition: transform 0.3s ease;
+}
+
+.christmas-login-btn:hover .btn-icon {
+    transform: translateX(3px);
+}
+
+.christmas-switch-mode {
+    text-align: center;
+    margin-top: 25px;
+    color: #1B5E20;
+    font-size: 0.95rem;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.christmas-switch-mode span {
+    color: #D32F2F;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.christmas-switch-mode span:hover {
+    color: #B71C1C;
+    background: #FFEBEE;
+    text-decoration: none;
+}
+
+/* RESPONSIVE DESIGN */
+@media (max-width: 768px) {
+    .christmas-auth-box {
+        width: 95%;
+        margin: 20px;
+        height: auto;
+    }
+
+    .christmas-auth-content {
+        flex-direction: column;
+        height: auto;
+    }
+
+    .christmas-auth-left {
+        padding: 30px 20px;
+    }
+
+    .christmas-auth-right {
+        padding: 30px 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    .christmas-auth-right {
+        padding: 25px 20px;
+    }
+
+    .christmas-auth-left {
+        padding: 25px 20px;
+    }
+
+    .christmas-auth-input {
+        padding: 12px 14px 12px 40px;
+    }
+
+    .christmas-input-icon {
+        left: 14px;
+    }
+}

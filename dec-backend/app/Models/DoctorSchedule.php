@@ -11,7 +11,14 @@ class DoctorSchedule extends Model
         'start_time',
         'end_time',
         'status',
-        'doctor_id'
+        'doctor_id',
+        'disabled_slots',
+        'is_custom'
+    ];
+
+    protected $casts = [
+        'disabled_slots' => 'array',
+        'is_custom' => 'boolean',
     ];
 
     protected $primaryKey = 'docsched_id';

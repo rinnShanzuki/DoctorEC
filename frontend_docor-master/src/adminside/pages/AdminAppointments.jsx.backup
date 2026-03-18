@@ -1,0 +1,466 @@
+import React, { useState, useEffect } from 'react';
+import { adminAPI } from '../../services/api';
+import './Dashboard.css';
+
+const AdminAppointments = () => {
+    const [appointments, setAppointments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('All');
+    const [showViewModal, setShowViewModal] = useState(false);
+    const [currentAppointment, setCurrentAppointment] = useState(null);
+
+    // Fetch Appointments
+    useEffect(() => {
+        fetchAppointments();
+    }, []);
+
+    const fetchAppointments = async () => {
+        try {
+            setLoading(true);
+            const response = await adminAPI.getAppointments();
+            const appointmentsData = response.data.data || response.data || [];
+            setAppointments(appointmentsData);
+        } catch (error) {
+            console.error('Error fetching appointments:', error);
+            setAppointments([]);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Filter Logic
+    const filteredAppointments = appointments.filter(app => {
+        const patientName = app.patient?.name ||
+            (app.clientAccount ? `${app.clientAccount.first_name} ${app.clientAccount.last_name}` : 'Unknown Patient');
+        const serviceName = app.service?.name || 'Unknown Service';
+        const doctorName = app.doctor?.full_name || 'Unassigned';
+        const searchString = searchTerm.toLowerCase();
+
+        const matchesSearch = patientName.toLowerCase().includes(searchString) ||
+            serviceName.toLowerCase().includes(searchString) ||
+            doctorName.toLowerCase().includes(searchString) ||
+            app.appointment_id?.toString().includes(searchTerm);
+
+        const matchesStatus = statusFilter === 'All' || app.status?.toLowerCase() === statusFilter.toLowerCase();
+
+        return matchesSearch && matchesStatus;
+    });
+
+    // Handle View
+    const handleView = (appointment) => {
+        setCurrentAppointment({ ...appointment });
+        setShowViewModal(true);
+    };
+
+    // Handle Approve
+    const handleApprove = async () => {
+        try {
+            await adminAPI.updateAppointmentStatus(currentAppointment.appointment_id, 'Approved');
+            setAppointments(appointments.map(app =>
+                app.appointment_id === currentAppointment.appointment_id ? { ...app, status: 'Approved' } : app
+            ));
+            alert('Appointment approved successfully!');
+            setShowViewModal(false);
+            fetchAppointments();
+        } catch (error) {
+            console.error('Error approving appointment:', error);
+            alert('Failed to approve appointment: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
+    // Handle Cancel
+    const handleCancel = async () => {
+        try {
+            await adminAPI.updateAppointmentStatus(currentAppointment.appointment_id, 'Cancelled');
+            setAppointments(appointments.map(app =>
+                app.appointment_id === currentAppointment.appointment_id ? { ...app, status: 'Cancelled' } : app
+            ));
+            alert('Appointment cancelled successfully!');
+            setShowViewModal(false);
+            fetchAppointments();
+        } catch (error) {
+            console.error('Error cancelling appointment:', error);
+            alert('Failed to cancel appointment: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
+    // Handle Mark as Ongoing
+    const handleMarkOngoing = async () => {
+        try {
+            await adminAPI.updateAppointmentStatus(currentAppointment.appointment_id, 'Ongoing');
+            setAppointments(appointments.map(app =>
+                app.appointment_id === currentAppointment.appointment_id ? { ...app, status: 'Ongoing' } : app
+            ));
+            alert('Appointment marked as ongoing!');
+            setShowViewModal(false);
+            fetchAppointments();
+        } catch (error) {
+            console.error('Error updating appointment:', error);
+            alert('Failed to update appointment: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
+    // Handle Mark as Completed
+    const handleMarkCompleted = async () => {
+        try {
+            await adminAPI.updateAppointmentStatus(currentAppointment.appointment_id, 'Completed');
+            setAppointments(appointments.map(app =>
+                app.appointment_id === currentAppointment.appointment_id ? { ...app, status: 'Completed' } : app
+            ));
+            alert('Appointment marked as completed!');
+            setShowViewModal(false);
+            fetchAppointments();
+        } catch (error) {
+            console.error('Error completing appointment:', error);
+            alert('Failed to complete appointment: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
+    // Get status badge class
+    const getStatusBadgeClass = (status) => {
+        switch (status) {
+            case 'Completed': return 'status-completed';
+            case 'Cancelled': return 'status-cancelled';
+            case 'Approved': return 'status-confirmed';
+            case 'Ongoing': return 'status-pending';
+            case 'Pending': return 'status-pending';
+            default: return 'status-pending';
+        }
+    };
+
+    if (loading) return <div className="dashboard-loading"><div className="spinner"></div></div>;
+
+    return (
+        <div className="dashboard">
+            <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                    <h1>Appointments</h1>
+                    <p className="dashboard-subtitle">Manage patient appointments</p>
+                </div>
+            </div>
+
+            {/* Status Tabs */}
+            <div style={{
+                marginBottom: '24px',
+                display: 'flex',
+                gap: '10px',
+                borderBottom: '2px solid #E0D5C7',
+                paddingBottom: '10px'
+            }}>
+                {['All', 'Pending', 'Approved', 'Ongoing', 'Completed', 'Cancelled'].map(status => (
+                    <button
+                        key={status}
+                        onClick={() => setStatusFilter(status)}
+                        style={{
+                            padding: '10px 20px',
+                            border: 'none',
+                            backgroundColor: statusFilter === status ? '#5D4E37' : 'transparent',
+                            color: statusFilter === status ? 'white' : '#5D4E37',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            fontWeight: statusFilter === status ? 'bold' : 'normal',
+                            fontSize: '14px',
+                            transition: 'all 0.3s ease'
+                        }}
+                    >
+                        {status}
+                    </button>
+                ))}
+            </div>
+
+            {/* Search */}
+            <div style={{ marginBottom: '24px' }}>
+                <input
+                    type="text"
+                    placeholder="Search by patient, service, or doctor..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    style={{
+                        width: '100%',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        border: '1px solid #E0D5C7',
+                        fontFamily: 'Calibri, sans-serif',
+                        fontSize: '14px'
+                    }}
+                />
+            </div>
+
+            {/* Appointments Table */}
+            <div className="chart-container">
+                <div style={{ overflowX: 'auto' }}>
+                    <table className="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient</th>
+                                <th>Service</th>
+                                <th>Doctor</th>
+                                <th>Date & Time</th>
+                                <th>Type</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredAppointments.length > 0 ? (
+                                filteredAppointments.map(app => {
+                                    const patientName = app.patient?.name ||
+                                        (app.clientAccount ? `${app.clientAccount.first_name} ${app.clientAccount.last_name}` : 'Unknown');
+                                    const serviceName = app.service?.name || 'N/A';
+                                    const doctorName = app.doctor?.full_name || 'Unassigned';
+
+                                    return (
+                                        <tr key={app.appointment_id}>
+                                            <td>#{app.appointment_id}</td>
+                                            <td>{patientName}</td>
+                                            <td>{serviceName}</td>
+                                            <td>{doctorName}</td>
+                                            <td>
+                                                {new Date(app.appointment_date).toLocaleDateString()}<br />
+                                                <span style={{ fontSize: '12px', color: '#666' }}>{app.appointment_time}</span>
+                                            </td>
+                                            <td style={{ textTransform: 'capitalize' }}>{app.appointment_type}</td>
+                                            <td>
+                                                <span className={`status-badge ${getStatusBadgeClass(app.status)}`}>
+                                                    {app.status}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <button
+                                                    onClick={() => handleView(app)}
+                                                    style={{
+                                                        padding: '6px 16px',
+                                                        fontSize: '12px',
+                                                        backgroundColor: '#5D4E37',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: 'pointer',
+                                                        fontWeight: '600'
+                                                    }}
+                                                    title="View Details"
+                                                >
+                                                    View
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
+                            ) : (
+                                <tr>
+                                    <td colSpan="8" className="no-data">No appointments found</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* View/Manage Appointment Modal */}
+            {showViewModal && currentAppointment && (
+                <div className="modal-overlay">
+                    <div className="modal-content" style={{ maxWidth: '600px', textAlign: 'left' }}>
+                        <h3 style={{ marginBottom: '20px', borderBottom: '2px solid #E0D5C7', paddingBottom: '10px' }}>
+                            Appointment Details #{currentAppointment.appointment_id}
+                        </h3>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
+                            {/* Patient Info */}
+                            <div>
+                                <strong style={{ display: 'block', marginBottom: '5px', color: '#5D4E37' }}>Patient:</strong>
+                                <div>
+                                    {currentAppointment.patient?.name ||
+                                        (currentAppointment.clientAccount ?
+                                            `${currentAppointment.clientAccount.first_name} ${currentAppointment.clientAccount.last_name}` :
+                                            'Unknown')}
+                                </div>
+                                {currentAppointment.clientAccount && (
+                                    <>
+                                        <div style={{ fontSize: '12px', color: '#666' }}>{currentAppointment.clientAccount.email}</div>
+                                        <div style={{ fontSize: '12px', color: '#666' }}>{currentAppointment.clientAccount.phone}</div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Service Info */}
+                            <div>
+                                <strong style={{ display: 'block', marginBottom: '5px', color: '#5D4E37' }}>Service:</strong>
+                                <div>{currentAppointment.service?.name || 'N/A'}</div>
+                                <div style={{ fontSize: '12px', color: '#666' }}>
+                                    ₱{Number(currentAppointment.service?.price || 0).toLocaleString()}
+                                </div>
+                            </div>
+
+                            {/* Doctor Info */}
+                            <div>
+                                <strong style={{ display: 'block', marginBottom: '5px', color: '#5D4E37' }}>Doctor:</strong>
+                                <div>{currentAppointment.doctor?.full_name || 'Unassigned'}</div>
+                            </div>
+
+                            {/* Appointment Type */}
+                            <div>
+                                <strong style={{ display: 'block', marginBottom: '5px', color: '#5D4E37' }}>Type:</strong>
+                                <div style={{ textTransform: 'capitalize' }}>{currentAppointment.appointment_type}</div>
+                            </div>
+
+                            {/* Date */}
+                            <div>
+                                <strong style={{ display: 'block', marginBottom: '5px', color: '#5D4E37' }}>Date:</strong>
+                                <div>{new Date(currentAppointment.appointment_date).toLocaleDateString()}</div>
+                            </div>
+
+                            {/* Time */}
+                            <div>
+                                <strong style={{ display: 'block', marginBottom: '5px', color: '#5D4E37' }}>Time:</strong>
+                                <div>{currentAppointment.appointment_time}</div>
+                            </div>
+
+                            {/* Booked On */}
+                            <div>
+                                <strong style={{ display: 'block', marginBottom: '5px', color: '#5D4E37' }}>Booked On:</strong>
+                                <div>{new Date(currentAppointment.created_at).toLocaleDateString()}</div>
+                            </div>
+
+                            {/* Status */}
+                            <div>
+                                <strong style={{ display: 'block', marginBottom: '5px', color: '#5D4E37' }}>Current Status:</strong>
+                                <div>
+                                    <span className={`status-badge ${getStatusBadgeClass(currentAppointment.status)}`}>
+                                        {currentAppointment.status}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Notes */}
+                        {currentAppointment.notes && (
+                            <div style={{ marginBottom: '20px' }}>
+                                <strong style={{ display: 'block', marginBottom: '5px', color: '#5D4E37' }}>Notes:</strong>
+                                <div style={{ padding: '10px', backgroundColor: '#f5f5f5', borderRadius: '4px', fontSize: '14px' }}>
+                                    {currentAppointment.notes}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div style={{ marginTop: '20px', paddingTop: '20px', borderTop: '1px solid #E0D5C7' }}>
+                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                                {/* Show Approve and Cancel buttons for Pending appointments */}
+                                {currentAppointment.status?.toLowerCase() === 'pending' && (
+                                    <>
+                                        <button
+                                            onClick={handleApprove}
+                                            style={{
+                                                padding: '12px 40px',
+                                                backgroundColor: '#4CAF50',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                fontSize: '16px',
+                                                fontWeight: '700',
+                                                minWidth: '140px',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                            }}
+                                        >
+                                            ✓ Approve
+                                        </button>
+                                        <button
+                                            onClick={handleCancel}
+                                            style={{
+                                                padding: '12px 40px',
+                                                backgroundColor: '#f44336',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                cursor: 'pointer',
+                                                fontSize: '16px',
+                                                fontWeight: '700',
+                                                minWidth: '140px',
+                                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                            }}
+                                        >
+                                            ✕ Cancel
+                                        </button>
+                                    </>
+                                )}
+
+                                {/* Show Mark as Ongoing button for Approved appointments */}
+                                {currentAppointment.status?.toLowerCase() === 'approved' && (
+                                    <button
+                                        onClick={handleMarkOngoing}
+                                        style={{
+                                            padding: '12px 40px',
+                                            backgroundColor: '#2196F3',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            fontSize: '16px',
+                                            fontWeight: '700',
+                                            minWidth: '180px',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                        }}
+                                    >
+                                        ▶ Mark as Ongoing
+                                    </button>
+                                )}
+
+                                {/* Show Mark as Completed button for Ongoing appointments */}
+                                {currentAppointment.status?.toLowerCase() === 'ongoing' && (
+                                    <button
+                                        onClick={handleMarkCompleted}
+                                        style={{
+                                            padding: '12px 40px',
+                                            backgroundColor: '#4CAF50',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            fontSize: '16px',
+                                            fontWeight: '700',
+                                            minWidth: '200px',
+                                            boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                                        }}
+                                    >
+                                        ✓ Mark as Completed
+                                    </button>
+                                )}
+
+                                {/* Show message for completed/cancelled appointments */}
+                                {!['pending', 'approved', 'ongoing'].includes(currentAppointment.status?.toLowerCase()) && (
+                                    <div style={{ textAlign: 'center', color: '#666', fontStyle: 'italic', padding: '10px' }}>
+                                        This appointment is {currentAppointment.status?.toLowerCase()}. No actions available.
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Close Button */}
+                            <div style={{ marginTop: '15px', textAlign: 'center' }}>
+                                <button
+                                    onClick={() => setShowViewModal(false)}
+                                    style={{
+                                        padding: '10px 30px',
+                                        backgroundColor: '#666',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        fontSize: '14px',
+                                        fontWeight: '600'
+                                    }}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default AdminAppointments;

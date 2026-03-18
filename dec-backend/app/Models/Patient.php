@@ -20,6 +20,14 @@ class Patient extends Model
     ];
 
     protected $primaryKey = 'patient_id';
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['name'];
+
     public function clientAccount()
     {
         return $this->belongsTo(ClientAccount::class, 'client_id');
@@ -30,9 +38,23 @@ class Patient extends Model
         return $this->hasMany(PatientRecord::class, 'patient_id');
     }
 
+    /**
+     * Get the patient's full name.
+     *
+     * @return string
+     */
+    public function getNameAttribute()
+    {
+        return trim("{$this->first_name} {$this->last_name}");
+    }
+
     public function appointments()
     {
         return $this->hasMany(Appointment::class, 'patient_id');
     }
 
+    public function prescriptions()
+    {
+        return $this->hasMany(Prescription::class, 'patient_id');
+    }
 }

@@ -15,13 +15,15 @@ return new class extends Migration
             $table->id('product_id');
             $table->string('name');
             $table->string('category');
-            $table->string('brand');
-            $table->string('material');
-            $table->string('lens_size');
-            $table->longText('description')->nullable();
             $table->decimal('price', 10, 2);
+            $table->longText('description')->nullable();
             $table->string('image')->nullable();
-            $table->integer('stocks')->default(0);
+            $table->integer('stock')->default(0);
+            $table->string('shape')->nullable();
+            $table->string('features')->nullable();
+            $table->string('frame_color')->nullable();
+            $table->string('grade_info')->nullable();
+            $table->string('target_audience')->nullable();
             $table->timestamps();
         });
     }

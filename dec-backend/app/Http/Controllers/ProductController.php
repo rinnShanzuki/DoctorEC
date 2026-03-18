@@ -11,9 +11,32 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
-        //
+        try {
+            $products = Product::all();
+            
+            // Transform images to full URLs
+            $products->transform(function ($product) {
+                if ($product->image && !filter_var($product->image, FILTER_VALIDATE_URL)) {
+                    $product->image = url('storage/' . $product->image);
+                }
+                return $product;
+            });
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $products
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to retrieve products: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

@@ -7,32 +7,39 @@ use Illuminate\Database\Eloquent\Model;
 class SalesTransaction extends Model
 {
     protected $fillable = [
+        'customer_name',
         'total_amount',
-        'status',
-        'notes',
-        'client_id',
-        'admin_id',
+        'amount_tendered',
+        'change_amount',
+        'payment_method',
+        'receipt_number',
+        'transaction_date',
+        'customer_id',
     ];
 
     protected $primaryKey = 'st_id';
     
-    public function client()
+    /**
+     * Get the customer for this transaction
+     */
+    public function customer()
     {
-        return $this->belongsTo(Client::class, 'client_id');
+        return $this->belongsTo(Customer::class, 'customer_id', 'customer_id');
     }
 
-    public function admin()
-    {
-        return $this->belongsTo(AdminAccount::class, 'admin_id');
-    }
-
+    /**
+     * Get all sales items (products) for this transaction
+     */
     public function items()
     {
-        return $this->hasMany(SalesItem::class, 'sales_transaction_id');
+        return $this->hasMany(SalesItem::class, 'st_id', 'st_id');
     }
 
-    public function payments()
+    /**
+     * Get all sales services for this transaction
+     */
+    public function services()
     {
-        return $this->hasMany(Payment::class, 'sales_transaction_id');
+        return $this->hasMany(SalesService::class, 'st_id', 'st_id');
     }
 }

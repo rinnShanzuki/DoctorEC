@@ -7,17 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 class ProductReservation extends Model
 {
     protected $fillable = [
-        'message',
-        'status',
         'client_id',
-        'product_id'
+        'product_id',
+        'quantity',
+        'pickup_date',
+        'payment_mode',
+        'status',
+        'message'
     ];
 
     protected $primaryKey = 'prodres_id';
 
     public function client()
     {
-        return $this->belongsTo(ClientAccount::class, 'client_id');
+        return $this->belongsTo(\App\Models\ClientAccount::class, 'client_id', 'client_id');
     }
 
     public function product()

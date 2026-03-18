@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('appointments', function (Blueprint $table) {
             $table->id('appointment_id');
             $table->foreignId('appointment_type_id')
+                ->nullable()
                 ->constrained('app_types', 'apptype_id')
                 ->onDelete('cascade');
             $table->foreignId('service_id')

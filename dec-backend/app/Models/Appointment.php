@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 class Appointment extends Model
 {
     protected $fillable = [
-        'apptype_id',
+        'appointment_type',
         'service_id',
         'appointment_date',
         'appointment_time',
         'status',
         'notes',
+        'occupation',
         'patient_id',
         'client_id',
         'doctor_id'
@@ -27,7 +28,7 @@ class Appointment extends Model
 
     public function clientAccount()
     {
-        return $this->belongsTo(ClientAccount::class, 'client_id');
+        return $this->belongsTo(ClientAccount::class, 'client_id', 'client_id');
     }
 
     public function doctor()
@@ -35,14 +36,14 @@ class Appointment extends Model
         return $this->belongsTo(Doctor::class, 'doctor_id');
     }
 
-    public function type()
-    {
-        return $this->belongsTo(AppType::class, 'apptype_id');
-    }
-
     public function service()
     {
         return $this->belongsTo(Service::class, 'service_id');
+    }
+
+    public function prescription()
+    {
+        return $this->hasOne(Prescription::class, 'appointment_id', 'appointment_id');
     }
 
 }

@@ -1,0 +1,260 @@
+.patient-details {
+    padding: 30px;
+    font-family: 'Calibri', sans-serif;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.patient-details .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: none;
+    border: 1px solid #E0D5C7;
+    color: #5D4E37;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    margin-bottom: 24px;
+}
+
+.patient-details .back-btn:hover {
+    background-color: #f5f0eb;
+}
+
+.patient-details .page-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2C2C2C;
+    margin: 0 0 8px 0;
+}
+
+.patient-details .page-subtitle {
+    color: #888;
+    font-size: 15px;
+    margin: 0 0 30px 0;
+}
+
+/* Patient Info Card */
+.patient-details .info-card {
+    background: linear-gradient(135deg, #f8f5f1, #ffffff);
+    border: 1px solid #E0D5C7;
+    border-radius: 12px;
+    padding: 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 2px 8px rgba(93, 78, 55, 0.06);
+}
+
+.patient-details .info-card h2 {
+    font-size: 18px;
+    color: #5D4E37;
+    margin: 0 0 20px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #E0D5C7;
+}
+
+.patient-details .info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.patient-details .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.patient-details .info-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.patient-details .info-value {
+    font-size: 15px;
+    color: #2C2C2C;
+    font-weight: 500;
+}
+
+/* Section Cards */
+.patient-details .section-card {
+    background: #ffffff;
+    border: 1px solid #E0D5C7;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.patient-details .section-card h2 {
+    font-size: 18px;
+    color: #5D4E37;
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid #E0D5C7;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.patient-details .section-card .badge {
+    background-color: #5D4E37;
+    color: white;
+    font-size: 12px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+/* Medical Record Box */
+.patient-details .medical-record {
+    padding: 16px;
+    background-color: #faf8f5;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+}
+
+.patient-details .medical-record-date {
+    font-size: 12px;
+    color: #999;
+    margin-top: 8px;
+}
+
+/* Tables inside sections */
+.patient-details .section-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 14px;
+}
+
+.patient-details .section-table thead th {
+    background-color: #f5f0eb;
+    padding: 12px 16px;
+    text-align: left;
+    color: #5D4E37;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    border-bottom: 2px solid #E0D5C7;
+}
+
+.patient-details .section-table thead th:first-child {
+    border-radius: 8px 0 0 0;
+}
+
+.patient-details .section-table thead th:last-child {
+    border-radius: 0 8px 0 0;
+}
+
+.patient-details .section-table tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f0ebe5;
+    color: #333;
+}
+
+.patient-details .section-table tbody tr:hover {
+    background-color: #faf8f5;
+}
+
+.patient-details .section-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* Status Badges */
+.patient-details .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.patient-details .status-badge.pending {
+    background-color: #FFF3CD;
+    color: #856404;
+}
+
+.patient-details .status-badge.approved {
+    background-color: #D4EDDA;
+    color: #155724;
+}
+
+.patient-details .status-badge.completed {
+    background-color: #D1ECF1;
+    color: #0C5460;
+}
+
+.patient-details .status-badge.cancelled {
+    background-color: #F8D7DA;
+    color: #721C24;
+}
+
+.patient-details .status-badge.ongoing {
+    background-color: #E2D9F3;
+    color: #4A2D8A;
+}
+
+/* Empty State */
+.patient-details .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 14px;
+}
+
+.patient-details .empty-state-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+/* Purchase Items */
+.patient-details .purchase-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.patient-details .purchase-item-tag {
+    background-color: #f5f0eb;
+    color: #5D4E37;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Loading */
+.patient-details .loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+}
+
+@media (max-width: 768px) {
+    .patient-details .info-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .patient-details {
+        padding: 16px;
+    }
+}
+
+@media (max-width: 480px) {
+    .patient-details .info-grid {
+        grid-template-columns: 1fr;
+    }
+}

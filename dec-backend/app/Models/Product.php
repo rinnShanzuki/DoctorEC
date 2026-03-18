@@ -15,10 +15,16 @@ class Product extends Model
         'description',
         'price',
         'image',
-        'stocks'
+        'stock',  // Changed from 'stocks' to match database column
+        'shape',
+        'features',
+        'frame_color',
+        'grade_info',
+        'target_audience'
     ];
 
     protected $primaryKey = 'product_id';
+    
     public function reservations()
     {
         return $this->hasMany(ProductReservation::class, 'product_id');

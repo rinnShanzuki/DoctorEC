@@ -10,6 +10,8 @@ class Product extends Model
         'name',
         'category',
         'brand',
+        'sex',
+        'age',
         'material',
         'lens_size',
         'description',
@@ -19,8 +21,8 @@ class Product extends Model
         'shape',
         'features',
         'frame_color',
-        'grade_info',
-        'target_audience'
+        'tint',
+        'grade_info'
     ];
 
     protected $primaryKey = 'product_id';

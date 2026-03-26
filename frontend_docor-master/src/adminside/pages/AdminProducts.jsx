@@ -5,10 +5,10 @@ import { demoProducts } from '../../clientside/data/demoData';
 import { useNotification } from '../hooks/useNotification';
 import './Dashboard.css';
 import productImages from '../../clientside/data/productImages';
+import { useShop } from '../../context/ShopContext';
 
 const AdminProducts = () => {
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const { products, setProducts, loading, refetchProducts } = useShop();
     const [searchTerm, setSearchTerm] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('All');
     const [statusFilter, setStatusFilter] = useState('All');
@@ -26,29 +26,7 @@ const AdminProducts = () => {
     // Pagination constant
     const itemsPerPage = 10;
 
-    // Fetch products on mount
-    useEffect(() => {
-        fetchProducts();
-    }, []);
 
-    const fetchProducts = async () => {
-        try {
-            const { data: response, fromCache } = await cachedGet('/products');
-            // Backend returns {status, data, message} where data is the products array
-            const productsData = response.data.data || response.data || [];
-            if (productsData.length > 0) {
-                setProducts(productsData);
-            } else {
-                setProducts([]);
-            }
-            if (fromCache) setLoading(false);
-        } catch (error) {
-            console.error('Error fetching products:', error);
-            setProducts([]);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     // Search and Filter Logic
     const filteredProducts = products.filter(product => {
@@ -124,14 +102,17 @@ const AdminProducts = () => {
         setCurrentProduct({
             name: '',
             price: '',
-            category: 'Frames',
+            category: 'Eyeglasses',
+            brand: '',
+            sex: 'Unisex',
+            age: 'Adult',
             image: '', // Start empty
             description: '',
-            shape: '',
+            shape: 'Rectangular',
             features: '',
             frame_color: '',
+            tint: '',
             grade_info: '',
-            target_audience: 'Men',
             stock: 0
         });
         setPreviewImage(null); // Start empty
@@ -210,8 +191,8 @@ const AdminProducts = () => {
             setPreviewImage(null);
             invalidateCache('/products');
 
-            // Optionally refetch to ensure data consistency
-            // fetchProducts();
+            // Refetch to ensure data consistency
+            refetchProducts();
         } catch (error) {
             console.error('Error saving product:', error);
             console.error('Error response:', error.response);
@@ -310,8 +291,8 @@ const AdminProducts = () => {
                         }}
                     >
                         <option value="All">All Categories</option>
-                        <option value="Frames">Frames</option>
-                        <option value="Lenses">Lenses</option>
+                        <option value="Eyeglasses">Eyeglasses</option>
+                        <option value="Contact Lenses">Contact Lenses</option>
                         <option value="Sunglasses">Sunglasses</option>
                     </select>
                     <select
@@ -528,14 +509,145 @@ const AdminProducts = () => {
                                     <input
                                         type="number"
                                         required
+                                        min="1"
+                                        max="999999"
                                         value={currentProduct.price}
-                                        onChange={e => setCurrentProduct({ ...currentProduct, price: e.target.value })}
+                                        onChange={e => {
+                                            let val = e.target.value;
+                                            // Do not allow starting with 0
+                                            if (val.startsWith('0')) {
+                                                val = val.replace(/^0+/, '');
+                                            }
+                                            // Limit up to 6 digits
+                                            if (val.length > 6) {
+                                                val = val.slice(0, 6);
+                                            }
+                                            setCurrentProduct({ ...currentProduct, price: val });
+                                        }}
                                         style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
                                     />
                                 </div>
                             </div>
 
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Category</label>
+                                    <select
+                                        value={currentProduct.category || 'Eyeglasses'}
+                                        onChange={e => setCurrentProduct({ ...currentProduct, category: e.target.value })}
+                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
+                                    >
+                                        <option value="Eyeglasses">Eyeglasses</option>
+                                        <option value="Contact Lenses">Contact Lenses</option>
+                                        <option value="Sunglasses">Sunglasses</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Brand</label>
+                                    <input
+                                        type="text"
+                                        value={currentProduct.brand || ''}
+                                        placeholder="e.g. Ray-Ban, Sunnies"
+                                        onChange={e => setCurrentProduct({ ...currentProduct, brand: e.target.value })}
+                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Sex</label>
+                                    <select
+                                        value={currentProduct.sex || 'Unisex'}
+                                        onChange={e => setCurrentProduct({ ...currentProduct, sex: e.target.value })}
+                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
+                                    >
+                                        <option value="Female">Female</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Unisex">Unisex</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Age</label>
+                                    <select
+                                        value={currentProduct.age || 'Adult'}
+                                        onChange={e => setCurrentProduct({ ...currentProduct, age: e.target.value })}
+                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
+                                    >
+                                        <option value="Adult">Adult</option>
+                                        <option value="Teens">Teens</option>
+                                        <option value="Kids">Kids</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Frame Shape</label>
+                                    <select
+                                        value={currentProduct.shape || 'Rectangular'}
+                                        onChange={e => setCurrentProduct({ ...currentProduct, shape: e.target.value })}
+                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
+                                    >
+                                        <option value="Rectangular">Rectangular</option>
+                                        <option value="Square">Square</option>
+                                        <option value="Round">Round</option>
+                                        <option value="Oval">Oval</option>
+                                        <option value="Aviator">Aviator</option>
+                                        <option value="Cat-eye">Cat-eye</option>
+                                        <option value="Wayfarer">Wayfarer</option>
+                                        <option value="Geometric">Geometric</option>
+                                        <option value="Browline">Browline</option>
+                                        <option value="Rimless">Rimless</option>
+                                        <option value="Semi-Rimless">Semi-Rimless</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Frame Color</label>
+                                    <input
+                                        type="text"
+                                        value={currentProduct.frame_color || ''}
+                                        onChange={e => setCurrentProduct({ ...currentProduct, frame_color: e.target.value })}
+                                        placeholder="e.g. Black, Gold"
+                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Tint</label>
+                                    <input
+                                        type="text"
+                                        value={currentProduct.tint || ''}
+                                        onChange={e => setCurrentProduct({ ...currentProduct, tint: e.target.value })}
+                                        placeholder="e.g. Blue, Grey, None"
+                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
+                                    />
+                                </div>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Feature</label>
+                                    <input
+                                        type="text"
+                                        value={currentProduct.features || ''}
+                                        onChange={e => setCurrentProduct({ ...currentProduct, features: e.target.value })}
+                                        placeholder="e.g. Anti-rad, Photochromic"
+                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                                <div>
+                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Grade</label>
+                                    <input
+                                        type="text"
+                                        value={currentProduct.grade_info || ''}
+                                        onChange={e => setCurrentProduct({ ...currentProduct, grade_info: e.target.value })}
+                                        placeholder="e.g. Plano to -4.00"
+                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
+                                    />
+                                </div>
                                 <div>
                                     <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Stock Quantity</label>
                                     <input
@@ -547,77 +659,6 @@ const AdminProducts = () => {
                                         style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
                                     />
                                 </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Category</label>
-                                    <select
-                                        value={currentProduct.category}
-                                        onChange={e => setCurrentProduct({ ...currentProduct, category: e.target.value })}
-                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
-                                    >
-                                        <option value="Frames">Frames</option>
-                                        <option value="Lenses">Lenses</option>
-                                        <option value="Sunglasses">Sunglasses</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Target Audience</label>
-                                    <select
-                                        value={currentProduct.target_audience}
-                                        onChange={e => setCurrentProduct({ ...currentProduct, target_audience: e.target.value })}
-                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
-                                    >
-                                        <option value="Men">Men</option>
-                                        <option value="Women">Women</option>
-                                        <option value="Kids">Kids</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Shape</label>
-                                    <input
-                                        type="text"
-                                        value={currentProduct.shape || ''}
-                                        onChange={e => setCurrentProduct({ ...currentProduct, shape: e.target.value })}
-                                        placeholder="e.g. Round, Square"
-                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Frame Color</label>
-                                    <input
-                                        type="text"
-                                        value={currentProduct.frame_color || ''}
-                                        onChange={e => setCurrentProduct({ ...currentProduct, frame_color: e.target.value })}
-                                        placeholder="e.g. Black, Gold"
-                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
-                                    />
-                                </div>
-                                <div>
-                                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Features</label>
-                                    <input
-                                        type="text"
-                                        value={currentProduct.features || ''}
-                                        onChange={e => setCurrentProduct({ ...currentProduct, features: e.target.value })}
-                                        placeholder="e.g. Anti-rad, Photochromic"
-                                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
-                                    />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 'bold' }}>Grade Info</label>
-                                <input
-                                    type="text"
-                                    value={currentProduct.grade_info || ''}
-                                    onChange={e => setCurrentProduct({ ...currentProduct, grade_info: e.target.value })}
-                                    placeholder="e.g. Plano to -4.00"
-                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #E0D5C7', fontFamily: 'Calibri' }}
-                                />
                             </div>
 
                             <div>

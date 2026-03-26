@@ -37,7 +37,7 @@ const DEFAULT_ABOUT = {
     show_map: true,
 };
 
-const About = () => {
+const About = ({ hideNavFooter = false }) => {
     const { getSetting } = useSiteSettings();
 
     const raw = getSetting('about_page_settings', DEFAULT_ABOUT);
@@ -55,7 +55,7 @@ const About = () => {
 
     return (
         <div style={styles.pageWrapper}>
-            <Navbar />
+            {!hideNavFooter && <Navbar />}
 
             {/* Hero Section */}
             <div className="about-hero" style={styles.heroSection}>
@@ -156,7 +156,7 @@ const About = () => {
                     </div>
                 </section>
             </div>
-            <Footer />
+            {!hideNavFooter && <Footer />}
         </div>
     );
 };

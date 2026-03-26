@@ -214,29 +214,6 @@ const PatientDetails = () => {
                 </div>
             </div>
 
-            {/* Medical Records */}
-            <div className="section-card">
-                <h2>
-                    🩺 Patient Medical Record
-                    <span className="badge">{(patient.medical_records || []).length}</span>
-                </h2>
-                {patient.medical_records && patient.medical_records.length > 0 ? (
-                    patient.medical_records.map(record => (
-                        <div key={record.id} className="medical-record">
-                            {record.medical_history || 'No details recorded.'}
-                            <div className="medical-record-date">
-                                Recorded on {formatDate(record.created_at)}
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <div className="empty-state">
-                        <div className="empty-state-icon">📄</div>
-                        <p>No medical records available.</p>
-                    </div>
-                )}
-            </div>
-
             {/* Prescription Records */}
             <div className="section-card">
                 <h2>

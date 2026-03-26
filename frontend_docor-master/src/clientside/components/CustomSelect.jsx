@@ -76,7 +76,9 @@ const styles = {
     trigger: {
         width: '100%',
         padding: '12px 40px 12px 12px',
-        border: '1px solid #D7CCC8',
+        borderWidth: '1px',
+        borderStyle: 'solid',
+        borderColor: '#D7CCC8',
         borderRadius: '8px',
         backgroundColor: 'white',
         fontFamily: 'var(--font-body-inter)',

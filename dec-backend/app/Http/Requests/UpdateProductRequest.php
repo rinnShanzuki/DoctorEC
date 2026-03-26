@@ -15,16 +15,19 @@ class UpdateProductRequest extends FormRequest
     {
         return [
             'name' => 'sometimes|string|max:255',
-            'category' => 'sometimes|string|max:255',
+            'category' => 'sometimes|string|in:Eyeglasses,Contact Lenses,Sunglasses',
+            'brand' => 'nullable|string|max:255',
+            'sex' => 'nullable|string|in:Female,Male,Unisex',
+            'age' => 'nullable|string|in:Adult,Teens,Kids',
             'price' => 'sometimes|numeric|min:0',
             'description' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'stock' => 'sometimes|integer|min:0',
-            'shape' => 'nullable|string|max:255',
+            'shape' => 'nullable|string|in:Rectangular,Square,Round,Oval,Aviator,Cat-eye,Wayfarer,Geometric,Browline,Rimless,Semi-Rimless',
             'features' => 'nullable|string|max:255',
             'frame_color' => 'nullable|string|max:255',
+            'tint' => 'nullable|string|max:255',
             'grade_info' => 'nullable|string|max:255',
-            'target_audience' => 'nullable|string|max:255',
         ];
     }
 }

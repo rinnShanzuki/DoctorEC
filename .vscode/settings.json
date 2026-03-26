@@ -1,0 +1,21 @@
+{
+    "php.version": "8.3",
+    "php.format.rules.phpVersion": "8.3",
+    "php.problems.exclude": {
+        "**/vendor/**": true,
+        "vendor/**": true,
+        "dec-backend/vendor/**": true,
+        "**/storage/framework/views/**": true,
+        "**/bootstrap/cache/**": true,
+        "**/.git/**": true,
+        "**/*.php": [418, 407, 404, 6406, 6601, 417]
+    },
+    "intelephense.environment.phpVersion": "8.3.0",
+    "intelephense.diagnostics.exclude": [
+        "**/vendor/**",
+        "vendor/**",
+        "dec-backend/vendor/**",
+        "**/storage/framework/views/**",
+        "**/bootstrap/cache/**"
+    ]
+}

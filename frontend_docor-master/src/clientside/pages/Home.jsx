@@ -71,7 +71,7 @@ const clientOnboardingSteps = [
 const Home = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { getSetting } = useSiteSettings();
+    const { getSetting, loading } = useSiteSettings();
 
     const handleSignUpClick = () => {
         navigate('/signup');
@@ -93,7 +93,7 @@ const Home = () => {
     };
 
     return (
-        <div>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             {/* Show onboarding tour only for logged-in users */}
             {user && (
                 <OnboardingTour
@@ -104,11 +104,28 @@ const Home = () => {
 
             <Navbar />
 
-            {/* Render sections dynamically based on saved layout order */}
-            {layout
-                .filter(section => section.visible)
-                .map(section => sectionComponents[section.id] || null)
-            }
+            <div style={{ flex: 1 }}>
+                {loading ? (
+                    <div style={{ minHeight: '70vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <div style={{
+                            width: '40px', height: '40px', 
+                            border: '3px solid rgba(139, 113, 84, 0.2)', 
+                            borderTop: '3px solid var(--color-dark-brown)', 
+                            borderRadius: '50%', 
+                            animation: 'spin 1s linear infinite'
+                        }} />
+                        <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+                    </div>
+                ) : (
+                    <>
+                        {/* Render sections dynamically based on saved layout order */}
+                        {layout
+                            .filter(section => section.visible)
+                            .map(section => sectionComponents[section.id] || null)
+                        }
+                    </>
+                )}
+            </div>
 
             <Footer />
         </div>

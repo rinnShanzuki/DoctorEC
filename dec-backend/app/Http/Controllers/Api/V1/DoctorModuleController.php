@@ -108,9 +108,7 @@ class DoctorModuleController extends Controller
         $validator = Validator::make($request->all(), [
             'medical_concern' => 'nullable|string',
             'medical_history' => 'nullable|string',
-            'left_eye' => 'nullable|string',
-            'right_eye' => 'nullable|string',
-            'lens_grade' => 'nullable|string',
+            'notes' => 'nullable|string',
             'recommendation' => 'nullable|string',
             'product_required' => 'boolean',
 
@@ -162,19 +160,18 @@ class DoctorModuleController extends Controller
         }
 
         // Save or update prescription
-        $prescription = Prescription::updateOrCreate(
-            ['appointment_id' => $appointment->appointment_id],
-            [
-                'doctor_id' => $doctor->doctor_id,
-                'patient_id' => $patientId,
-                'client_id' => $clientId,
-                'birthday' => $birthday,
-                'age' => $age,
-                'left_eye' => $request->left_eye ?: null,
-                'right_eye' => $request->right_eye ?: null,
-                'lens_grade' => $request->lens_grade ?: null,
+            $prescription = Prescription::create([
+                'appointment_id' => $appointment->appointment_id,
+                'patient_id' => $appointment->patient_id,
+                'client_id' => $appointment->client_id,
+                'doctor_id' => $appointment->doctor_id,
+                'birthday' => $appointment->patient ? $appointment->patient->birthdate : null,
+                'age' => $appointment->patient && $appointment->patient->birthdate 
+                    ? \Carbon\Carbon::parse($appointment->patient->birthdate)->age : null,
+                
                 'recommendation' => $request->recommendation ?: null,
                 'medical_concern' => $request->medical_concern ?: null,
+                'notes' => $request->notes ?: null,
                 'product_required' => $request->product_required ?? false,
 
                 // Rx (sph = blank column, add, va)

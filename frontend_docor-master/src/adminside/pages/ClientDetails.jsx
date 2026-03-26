@@ -267,29 +267,6 @@ const ClientDetails = () => {
                 </div>
             </div>
 
-            {/* Medical Records */}
-            <div className="section-card">
-                <h2>
-                    🩺 Patient Medical Record
-                    <span className="badge">{(client.medical_records || []).length}</span>
-                </h2>
-                {client.medical_records && client.medical_records.length > 0 ? (
-                    client.medical_records.map(record => (
-                        <div key={record.id} className="medical-record">
-                            {record.medical_history || 'No details recorded.'}
-                            <div className="medical-record-date">
-                                Recorded on {formatDate(record.created_at)}
-                            </div>
-                        </div>
-                    ))
-                ) : (
-                    <div className="empty-state">
-                        <div className="empty-state-icon">📄</div>
-                        <p>No medical records available. Records will appear once the client has had a check-up.</p>
-                    </div>
-                )}
-            </div>
-
             {/* Prescription Records */}
             <div className="section-card">
                 <h2>

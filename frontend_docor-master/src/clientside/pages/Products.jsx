@@ -21,12 +21,19 @@ const DEFAULT_CONFIG = {
     page_title: 'Our Collection',
     page_subtitle: 'Discover our wide range of premium eyewear.',
     filter_attributes: [
-        { key: 'target_audience', label: 'Category', values: ['All', 'Kids', 'Men', 'Women'], enabled: true, type: 'buttons' },
-        { key: 'price_range', label: 'Price Range', type: 'range', max: 3000, enabled: true },
+        { key: 'category', label: 'Type', values: ['All', 'Eyeglasses', 'Contact Lenses', 'Sunglasses'], enabled: true, type: 'buttons' },
+        { key: 'sex', label: 'Gender', values: ['All', 'Female', 'Male', 'Unisex'], enabled: true, type: 'buttons' },
+        { key: 'age', label: 'Age', values: ['All', 'Adult', 'Teens', 'Kids'], enabled: true, type: 'buttons' },
+        { key: 'price_range', label: 'Price Range', type: 'range', max: 5000, enabled: true },
     ],
+    product_details: {
+        name: true, price: false, category: true, brand: true, sex: true, 
+        age: true, frame_shape: true, frame_color: true, tint: true, 
+        feature: true, grade: true, description: true
+    }
 };
 
-const Products = () => {
+const Products = ({ hideNavFooter = false }) => {
     const { products, loading } = useShop();
     const { user } = useAuth();
     const navigate = useNavigate();
@@ -58,7 +65,7 @@ const Products = () => {
         const s = searchParams.get('search');
         const c = searchParams.get('category');
         if (s) setSearchTerm(s);
-        if (c) setFilters(prev => ({ ...prev, target_audience: c }));
+        if (c) setFilters(prev => ({ ...prev, category: c }));
     }, [searchParams]);
 
     // Grid columns based on layout setting
@@ -211,7 +218,7 @@ const Products = () => {
 
     return (
         <div style={styles.pageWrapper}>
-            <Navbar />
+            {!hideNavFooter && <Navbar />}
 
             {/* Hero */}
             <div style={styles.heroContainer}>
@@ -245,9 +252,9 @@ const Products = () => {
                 )}
             </div>
 
-            <Footer />
+            {!hideNavFooter && <Footer />}
 
-            <ProductDetailsModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setSelectedProduct(null); }} product={selectedProduct} />
+            <ProductDetailsModal isOpen={isModalOpen} onClose={() => { setIsModalOpen(false); setSelectedProduct(null); }} product={selectedProduct} detailsConfig={config.product_details || {}} />
             <SignInModal isOpen={isSignInOpen} onClose={() => setIsSignInOpen(false)} />
         </div>
     );

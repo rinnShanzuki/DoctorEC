@@ -2,8 +2,14 @@ import React from 'react';
 import { FaTimes } from 'react-icons/fa';
 import logo from '../../assets/logo.jpg';
 
-const ProductDetailsModal = ({ isOpen, onClose, product }) => {
+const ProductDetailsModal = ({ isOpen, onClose, product, detailsConfig = {} }) => {
     if (!isOpen || !product) return null;
+
+    const isVisible = (field) => {
+        if (detailsConfig[field] !== undefined) return detailsConfig[field];
+        if (field === 'price') return false;
+        return true;
+    };
 
     return (
         <div style={styles.overlay} onClick={onClose}>
@@ -21,20 +27,26 @@ const ProductDetailsModal = ({ isOpen, onClose, product }) => {
                             <img src={product.image} alt={product.name} style={styles.image} />
                         </div>
                         <div style={styles.detailsSection}>
-                            <h2 style={styles.name}>{product.name}</h2>
-                            <p style={styles.price}>{product.price.toLocaleString()}</p>
+                            {isVisible('name') && <h2 style={styles.name}>{product.name}</h2>}
+                            {isVisible('price') && <p style={styles.price}>{product.price.toLocaleString()}</p>}
 
                             <div style={styles.attributes}>
-                                <p><strong>Category:</strong> {product.target_audience || product.category}</p>
-                                {product.shape && <p><strong>Shape:</strong> {product.shape}</p>}
-                                {product.frame_color && <p><strong>Color:</strong> {product.frame_color}</p>}
-                                {product.features && <p><strong>Features:</strong> {product.features}</p>}
-                                {product.grade_info && <p><strong>Grade Info:</strong> {product.grade_info}</p>}
+                                {isVisible('category') && (product.target_audience || product.category) && <p><strong>Category:</strong> {product.target_audience || product.category}</p>}
+                                {isVisible('brand') && product.brand && <p><strong>Brand:</strong> {product.brand}</p>}
+                                {isVisible('sex') && product.sex && <p><strong>Sex:</strong> {product.sex}</p>}
+                                {isVisible('age') && product.age && <p><strong>Age:</strong> {product.age}</p>}
+                                {isVisible('frame_shape') && product.shape && <p><strong>Shape:</strong> {product.shape}</p>}
+                                {isVisible('frame_color') && product.frame_color && <p><strong>Color:</strong> {product.frame_color}</p>}
+                                {isVisible('tint') && product.tint && <p><strong>Tint:</strong> {product.tint}</p>}
+                                {isVisible('feature') && product.features && <p><strong>Features:</strong> {product.features}</p>}
+                                {isVisible('grade') && product.grade_info && <p><strong>Grade Info:</strong> {product.grade_info}</p>}
                             </div>
 
-                            <p style={styles.description}>
-                                {product.description || "Experience clarity and style with our premium eyewear. Designed for comfort and durability, perfect for your daily needs."}
-                            </p>
+                            {isVisible('description') && (
+                                <p style={styles.description}>
+                                    {product.description || "Experience clarity and style with our premium eyewear. Designed for comfort and durability, perfect for your daily needs."}
+                                </p>
+                            )}
 
                             <div style={styles.customizeSection}>
                                 <label style={styles.label}>Customize Grade (Optional):</label>

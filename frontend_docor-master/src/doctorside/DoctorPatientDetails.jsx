@@ -247,20 +247,6 @@ const DoctorPatientDetails = () => {
                                         {pres.service_name} — {formatDate(pres.appointment_date)}
                                     </div>
                                 )}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '10px' }}>
-                                    <div>
-                                        <div style={labelStyle}>Left Eye (OS)</div>
-                                        <div style={valueStyle}>{pres.left_eye || '—'}</div>
-                                    </div>
-                                    <div>
-                                        <div style={labelStyle}>Right Eye (OD)</div>
-                                        <div style={valueStyle}>{pres.right_eye || '—'}</div>
-                                    </div>
-                                    <div>
-                                        <div style={labelStyle}>Lens Grade</div>
-                                        <div style={valueStyle}>{pres.lens_grade || '—'}</div>
-                                    </div>
-                                </div>
                                 {pres.medical_concern && (
                                     <div style={{ marginBottom: '8px' }}>
                                         <div style={labelStyle}>Medical Concern</div>

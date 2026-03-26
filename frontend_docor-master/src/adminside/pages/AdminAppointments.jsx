@@ -771,24 +771,7 @@ const AdminAppointments = () => {
                                             <div style={{ marginTop: '4px', color: '#333' }}>{currentAppointment.prescription.medical_concern}</div>
                                         </div>
                                     )}
-                                    {currentAppointment.prescription.left_eye && (
-                                        <div>
-                                            <strong style={{ color: '#5D4E37' }}>Left Eye:</strong>
-                                            <div style={{ marginTop: '4px', color: '#333' }}>{currentAppointment.prescription.left_eye}</div>
-                                        </div>
-                                    )}
-                                    {currentAppointment.prescription.right_eye && (
-                                        <div>
-                                            <strong style={{ color: '#5D4E37' }}>Right Eye:</strong>
-                                            <div style={{ marginTop: '4px', color: '#333' }}>{currentAppointment.prescription.right_eye}</div>
-                                        </div>
-                                    )}
-                                    {currentAppointment.prescription.lens_grade && (
-                                        <div>
-                                            <strong style={{ color: '#5D4E37' }}>Lens Grade:</strong>
-                                            <div style={{ marginTop: '4px', color: '#333' }}>{currentAppointment.prescription.lens_grade}</div>
-                                        </div>
-                                    )}
+
                                     {currentAppointment.prescription.recommendation && (
                                         <div style={{ gridColumn: '1 / -1' }}>
                                             <strong style={{ color: '#5D4E37' }}>Recommendation:</strong>

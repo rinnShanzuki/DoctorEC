@@ -712,3 +712,144 @@
         justify-content: space-between;
     }
 }
+
+/* ===== IMAGE UPLOAD ===== */
+.wde-image-upload {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.wde-image-preview {
+    width: 100%;
+    max-height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    background: #f9f9f9;
+}
+
+.wde-upload-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 9px 16px;
+    background: linear-gradient(135deg, #8b7154, #a0855e);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.wde-upload-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #785e3c, #8b7154);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(139, 113, 84, 0.3);
+}
+
+.wde-upload-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.wde-upload-full {
+    width: 100%;
+    margin: 8px 0;
+}
+
+/* ===== IMAGE GRID (Slider) ===== */
+.wde-image-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.wde-image-grid-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e8e8e8;
+    aspect-ratio: 3 / 2;
+}
+
+.wde-image-grid-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.wde-image-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: rgba(211, 47, 47, 0.9);
+    color: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.wde-image-grid-item:hover .wde-image-remove {
+    opacity: 1;
+}
+
+.wde-image-remove:hover {
+    background: #c62828;
+}
+
+/* ===== FONT PREVIEW ===== */
+.wde-font-preview {
+    padding: 12px;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    color: #333;
+    line-height: 1.4;
+}
+
+/* ===== SIZE BUTTONS ===== */
+.wde-size-buttons {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.wde-size-btn {
+    flex: 1;
+    padding: 8px 0;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #666;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.wde-size-btn:hover {
+    border-color: #8b7154;
+    color: #8b7154;
+}
+
+.wde-size-btn.active {
+    background: #8b7154;
+    color: #fff;
+    border-color: #8b7154;
+}

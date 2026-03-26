@@ -2,19 +2,35 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useSiteSettings } from '../context/SiteSettingsContext';
+import API_CONFIG from '../../config/api.config';
 import heroImage from '../../assets/docec-family.jpg';
 import coverImage from '../../assets/docec-cover.jpg';
 import glassNbg from '../../assets/glass-nbg.png';
 import ConfirmationModal from './ConfirmationModal';
 
-const Hero = ({ onSignUpClick, onBookClick }) => {
+const resolveUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http') || url.startsWith('data:') || url.startsWith('blob:')) return url;
+    const base = API_CONFIG.BASE_URL.replace('/api/v1', '');
+    return `${base}${url}`;
+};
+
+const Hero = ({ onSignUpClick, onBookClick, headline: propHeadline, subheadline: propSubheadline, coverImage: propCoverImage, fgImage: propFgImage }) => {
     const [showModal, setShowModal] = useState(false);
     const navigate = useNavigate();
     const { user } = useAuth();
     const { getSetting } = useSiteSettings();
 
-    const headline = getSetting('hero_headline', 'Precision Care for Every Pair');
-    const subheadline = getSetting('hero_subheadline', 'From eye exams to treatments and prescription eyeglasses, we\'re here for your eye care needs.');
+    // Priority: props (from SiteEditor live preview) → settings (from DB) → hardcoded defaults
+    const settingsHeadline = getSetting('hero_headline', '');
+    const settingsSubheadline = getSetting('hero_subheadline', '');
+    const settingsCover = getSetting('hero_cover_image', '');
+    const settingsFg = getSetting('hero_fg_image', '');
+
+    const displayHeadline = propHeadline || settingsHeadline || 'Precision Care for Every Pair';
+    const displaySubheadline = propSubheadline || settingsSubheadline || 'From eye exams to treatments and prescription eyeglasses, we\'re here for your eye care needs.';
+    const activeCover = propCoverImage || (settingsCover ? resolveUrl(settingsCover) : '') || coverImage;
+    const activeFg = propFgImage || (settingsFg ? resolveUrl(settingsFg) : '') || glassNbg;
 
     const handleBookClick = () => {
         if (user) {
@@ -30,12 +46,12 @@ const Hero = ({ onSignUpClick, onBookClick }) => {
     };
 
     return (
-        <section className="hero-section" style={styles.hero}>
+        <section className="hero-section" style={{ ...styles.hero, backgroundImage: `url(${activeCover})` }}>
             <div style={styles.overlay}></div>
             <div className="container hero-container" style={styles.container}>
                 <div className="hero-content" style={styles.content}>
-                    <h1 style={styles.headline}>{headline}</h1>
-                    <p style={styles.subheadline}>{subheadline}</p>
+                    <h1 style={styles.headline}>{displayHeadline}</h1>
+                    <p style={styles.subheadline}>{displaySubheadline}</p>
                     <div className="hero-buttons" style={styles.buttonGroup}>
                         <button style={styles.bookBtn} onClick={handleBookClick}>Book an Appointment</button>
                         {onSignUpClick && (
@@ -44,7 +60,7 @@ const Hero = ({ onSignUpClick, onBookClick }) => {
                     </div>
                 </div>
                 <div className="hero-image-wrapper" style={styles.imageWrapper}>
-                    <img src={glassNbg} alt="Precision Eye Care" style={styles.image} />
+                    <img src={activeFg} alt="Precision Eye Care" style={styles.image} />
                 </div>
             </div>
             <ConfirmationModal

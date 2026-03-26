@@ -40,21 +40,43 @@ export const SiteSettingsProvider = ({ children }) => {
      * This makes all components using var(--color-dark-brown) etc. auto-update
      */
     const applyThemeColors = () => {
-        if (!settings.theme_colors) return;
+        const root = document.documentElement;
 
-        try {
-            const colors = typeof settings.theme_colors === 'string'
-                ? JSON.parse(settings.theme_colors)
-                : settings.theme_colors;
+        // Apply color overrides
+        if (settings.theme_colors) {
+            try {
+                const colors = typeof settings.theme_colors === 'string'
+                    ? JSON.parse(settings.theme_colors)
+                    : settings.theme_colors;
 
-            const root = document.documentElement;
-            Object.entries(colors).forEach(([key, value]) => {
-                if (value && typeof value === 'string' && value.startsWith('#')) {
-                    root.style.setProperty(`--${key}`, value);
+                Object.entries(colors).forEach(([key, value]) => {
+                    if (value && typeof value === 'string' && value.startsWith('#')) {
+                        root.style.setProperty(`--${key}`, value);
+                    }
+                });
+            } catch (e) {
+                console.error('Failed to apply theme colors:', e);
+            }
+        }
+
+        // Apply typography overrides
+        if (settings.typography_settings) {
+            try {
+                const typo = typeof settings.typography_settings === 'string'
+                    ? JSON.parse(settings.typography_settings)
+                    : settings.typography_settings;
+
+                if (typo.heading_font) {
+                    root.style.setProperty('--font-heading-poppins', typo.heading_font);
+                    root.style.setProperty('--font-heading-montserrat', typo.heading_font);
                 }
-            });
-        } catch (e) {
-            console.error('Failed to apply theme colors:', e);
+                if (typo.body_font) {
+                    root.style.setProperty('--font-body-inter', typo.body_font);
+                    root.style.setProperty('--font-body-roboto', typo.body_font);
+                }
+            } catch (e) {
+                console.error('Failed to apply typography:', e);
+            }
         }
     };
 

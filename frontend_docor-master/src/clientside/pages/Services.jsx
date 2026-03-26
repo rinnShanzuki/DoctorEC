@@ -16,7 +16,7 @@ const DEFAULT_CONFIG = {
     page_subtitle: 'Choose your preferred consultation method',
 };
 
-const Services = () => {
+const Services = ({ hideNavFooter = false }) => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const [services, setServices] = useState([]);
@@ -84,7 +84,7 @@ const Services = () => {
 
     return (
         <div>
-            <Navbar />
+            {!hideNavFooter && <Navbar />}
             <div className="services-header" style={styles.header}>
                 <div style={styles.overlay}></div>
                 <div className="container" style={styles.container}>
@@ -114,7 +114,7 @@ const Services = () => {
                 </div>
             )}
 
-            <Footer />
+            {!hideNavFooter && <Footer />}
         </div>
     );
 };

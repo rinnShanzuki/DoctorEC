@@ -211,7 +211,9 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }) {
                       style={{
                         width: '48px', height: '56px', textAlign: 'center',
                         fontSize: '1.5rem', fontWeight: 700, color: '#3B2F2B',
-                        border: `2px solid ${digit ? '#8B6F55' : '#E8D7C9'}`,
+                        borderWidth: '2px',
+                        borderStyle: 'solid',
+                        borderColor: digit ? '#8B6F55' : '#E8D7C9',
                         borderRadius: '12px',
                         background: digit ? '#FBF7F3' : '#FFFDFB',
                         transition: 'all 0.3s ease', outline: 'none',

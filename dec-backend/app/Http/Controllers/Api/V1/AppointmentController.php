@@ -107,22 +107,33 @@ class AppointmentController extends Controller
                 // Create or update a linked Patient record for the online client
                 $nameParts = $this->parseFullName($validated['full_name'] ?? null, $user);
                 
-                $patient = \App\Models\Patient::updateOrCreate(
-                    ['client_id' => $user->client_id],
-                    [
+                $patient = \App\Models\Patient::where('client_id', $user->client_id)->first();
+
+                if (!$patient) {
+                    $maxId = \App\Models\Patient::max('patient_id') ?? 0;
+                    $patientCode = 'P' . str_pad($maxId + 1, 6, '0', STR_PAD_LEFT);
+
+                    $patient = clone new \App\Models\Patient();
+                    $patient->fill([
+                        'client_id' => $user->client_id,
+                        'patient_code' => $patientCode,
                         'first_name' => $nameParts['first_name'],
                         'last_name' => $nameParts['last_name'],
                         'email' => $validated['email'] ?? $user->email,
                         'phone' => $validated['phone'] ?? $user->phone,
                         'birthdate' => $validated['birthday'] ?? null,
                         'gender' => $validated['gender'] ?? $user->gender,
-                    ]
-                );
-
-                // Generate patient_code if new
-                if (!$patient->patient_code) {
-                    $patient->patient_code = 'P' . str_pad($patient->patient_id, 6, '0', STR_PAD_LEFT);
+                    ]);
                     $patient->save();
+                } else {
+                    $patient->update([
+                        'first_name' => $nameParts['first_name'],
+                        'last_name' => $nameParts['last_name'],
+                        'email' => $validated['email'] ?? $user->email,
+                        'phone' => $validated['phone'] ?? $user->phone,
+                        'birthdate' => $validated['birthday'] ?? null,
+                        'gender' => $validated['gender'] ?? $user->gender,
+                    ]);
                 }
 
                 $validated['patient_id'] = $patient->patient_id;

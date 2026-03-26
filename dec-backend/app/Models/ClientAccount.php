@@ -40,4 +40,9 @@ class ClientAccount extends Authenticatable
     {
         return $this->belongsTo(Role::class, 'role_id');
     }
+
+    public function reservations()
+    {
+        return $this->hasMany(ProductReservation::class, 'client_id');
+    }
 }

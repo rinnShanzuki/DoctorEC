@@ -1,19 +1,21 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { FaChevronLeft, FaChevronRight, FaTrash, FaPlus } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { useSiteSettings } from '../context/SiteSettingsContext';
 import promo1 from '../../assets/promo1.jpg';
 import promo2 from '../../assets/promo2.jpg';
 import promo3 from '../../assets/promo3.jpg';
 import featured from '../../assets/featured.jpg';
 import featured3 from '../../assets/featured3.jpg';
+import API_CONFIG from '../../config/api.config';
+
+const DEFAULT_HIGHLIGHTS = [promo1, promo2, promo3, featured, featured3];
 
 const ImageSlider = () => {
-    const { settings, isEditing, updateSetting, uploadImage } = useSiteSettings();
+    const { settings } = useSiteSettings();
     const [images, setImages] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedImage, setSelectedImage] = useState(null);
-    const fileInputRef = useRef(null);
 
     // Responsive items to show
     const getItemsToShow = () => {
@@ -36,62 +38,32 @@ const ImageSlider = () => {
 
     // Initialize images from settings or defaults
     useEffect(() => {
-        if (settings.highlights) {
+        if (settings.highlights && settings.highlights !== '[]') {
             try {
                 const parsed = JSON.parse(settings.highlights);
                 setImages(parsed);
             } catch (e) {
                 console.error("Failed to parse highlights setting", e);
-                setImages([promo1, promo2, promo3, featured, featured3]);
+                setImages(DEFAULT_HIGHLIGHTS);
             }
         } else {
-            // Initial default if no setting exists
-            setImages([promo1, promo2, promo3, featured, featured3]);
+            setImages(DEFAULT_HIGHLIGHTS);
         }
     }, [settings.highlights]);
 
-    const saveImages = (newImages) => {
-        setImages(newImages);
-        updateSetting('highlights', JSON.stringify(newImages), 'json');
-    };
-
-    const handleAddImage = async (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            try {
-                // Upload image first
-                // We use a temporary key 'temp_upload' or just rely on the return URL
-                // The uploadImage function in context updates a setting key, which might not be what we want for a list.
-                // But we can use it to get the URL if we modify the context or just use the return value.
-                // The context function returns the URL.
-                // We'll use a dummy key for the upload, or better, the controller should support generic uploads.
-                // My context implementation updates the key provided. 
-                // Let's use a unique key for the upload to avoid overwriting 'highlights' with a single URL string.
-                const timestamp = Date.now();
-                const url = await uploadImage(file, `highlight_${timestamp}`);
-
-                const newImages = [...images, url];
-                saveImages(newImages);
-            } catch (error) {
-                alert('Failed to upload image');
-            }
+    const resolveImageUrl = (url) => {
+        if (!url) return '';
+        if (url.startsWith('http')) return url;
+        if (url.startsWith('/storage/')) {
+            const base = API_CONFIG.BASE_URL.replace('/api/v1', '');
+            return `${base}${url}`;
         }
-    };
-
-    const handleRemoveImage = (indexToRemove) => {
-        const newImages = images.filter((_, index) => index !== indexToRemove);
-        saveImages(newImages);
-        // Adjust current index if needed
-        if (currentIndex >= newImages.length - itemsToShow && currentIndex > 0) {
-            setCurrentIndex(Math.max(0, newImages.length - itemsToShow));
-        }
+        return url;
     };
 
     const openModal = (image) => {
-        if (!isEditing) {
-            setSelectedImage(image);
-            setIsModalOpen(true);
-        }
+        setSelectedImage(image);
+        setIsModalOpen(true);
     };
 
     const closeModal = () => {
@@ -135,23 +107,11 @@ const ImageSlider = () => {
                             <div key={index} style={{ ...styles.slide, width: `${100 / images.length}%` }}>
                                 <div style={{ position: 'relative' }}>
                                     <img
-                                        src={img}
+                                        src={resolveImageUrl(img)}
                                         alt={`Highlight ${index + 1}`}
                                         style={styles.image}
-                                        onClick={() => openModal(img)}
+                                        onClick={() => openModal(resolveImageUrl(img))}
                                     />
-                                    {isEditing && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleRemoveImage(index);
-                                            }}
-                                            style={styles.removeBtn}
-                                            title="Remove Image"
-                                        >
-                                            <FaTrash />
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         ))}
@@ -161,24 +121,6 @@ const ImageSlider = () => {
                         <button style={styles.arrowRight} onClick={nextSlide}><FaChevronRight /></button>
                     )}
                 </div>
-
-                {isEditing && (
-                    <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                        <button
-                            onClick={() => fileInputRef.current.click()}
-                            style={styles.addBtn}
-                        >
-                            <FaPlus /> Add Highlight
-                        </button>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            style={{ display: 'none' }}
-                            accept="image/*"
-                            onChange={handleAddImage}
-                        />
-                    </div>
-                )}
 
                 <div style={styles.pagination}>
                     {[...Array(maxIndex + 1)].map((_, index) => (
@@ -208,38 +150,6 @@ const ImageSlider = () => {
 };
 
 const styles = {
-    // ... existing styles ...
-    removeBtn: {
-        position: 'absolute',
-        top: '10px',
-        right: '10px',
-        backgroundColor: '#D32F2F',
-        color: 'white',
-        border: 'none',
-        borderRadius: '50%',
-        width: '30px',
-        height: '30px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        boxShadow: '0 2px 5px rgba(0,0,0,0.3)',
-        zIndex: 20
-    },
-    addBtn: {
-        backgroundColor: '#388E3C',
-        color: 'white',
-        border: 'none',
-        padding: '10px 20px',
-        borderRadius: '25px',
-        cursor: 'pointer',
-        fontSize: '16px',
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: '8px',
-        boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-        fontWeight: 'bold'
-    },
     section: {
         padding: '60px 0',
         backgroundColor: 'var(--color-white)',

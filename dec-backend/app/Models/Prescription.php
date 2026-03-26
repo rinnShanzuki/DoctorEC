@@ -8,9 +8,6 @@ class Prescription extends Model
 {
     protected $fillable = [
         // Original fields
-        'left_eye',
-        'right_eye',
-        'lens_grade',
         'recommendation',
         'medical_concern',
         'product_required',

@@ -3,18 +3,30 @@ import heroImage from '../../assets/docec-family.jpg';
 import coverImage from '../../assets/docec-cover.jpg';
 import glassNbg from '../../assets/glass-nbg.png';
 import { useSiteSettings } from '../../clientside/context/SiteSettingsContext';
+import API_CONFIG from '../../config/api.config';
 
-const Hero = ({ onSignUpClick, onBookClick, headline, subheadline, coverImage: propCoverImage }) => {
-    let settingsHeadline, settingsSubheadline;
+const resolveUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http') || url.startsWith('data:') || url.startsWith('blob:')) return url;
+    const base = API_CONFIG.BASE_URL.replace('/api/v1', '');
+    return `${base}${url}`;
+};
+
+const Hero = ({ onSignUpClick, onBookClick, headline, subheadline, coverImage: propCoverImage, fgImage: propFgImage }) => {
+    let settingsHeadline, settingsSubheadline, settingsCoverImage, settingsFgImage;
     try {
         const { getSetting } = useSiteSettings();
         settingsHeadline = getSetting('hero_headline', '');
         settingsSubheadline = getSetting('hero_subheadline', '');
+        settingsCoverImage = getSetting('hero_cover_image', '');
+        settingsFgImage = getSetting('hero_fg_image', '');
     } catch {
         // SiteSettingsProvider may not wrap admin routes
     }
 
-    const bgImage = propCoverImage || coverImage;
+    // Priority: props (from SiteEditor live preview) → settings (from DB) → hardcoded defaults
+    const bgImage = propCoverImage || (settingsCoverImage ? resolveUrl(settingsCoverImage) : '') || coverImage;
+    const fgImage = propFgImage || (settingsFgImage ? resolveUrl(settingsFgImage) : '') || glassNbg;
     const displayHeadline = headline || settingsHeadline || "Precision Care for Every Pair";
     const displaySubheadline = subheadline || settingsSubheadline || "From eye exams to treatments and prescription eyeglasses, we're here for your eye care needs.";
 
@@ -42,7 +54,7 @@ const Hero = ({ onSignUpClick, onBookClick, headline, subheadline, coverImage: p
                     </div>
                 </div>
                 <div style={styles.imageWrapper}>
-                    <img src={glassNbg} alt="Precision Eye Care" style={styles.image} />
+                    <img src={fgImage} alt="Precision Eye Care" style={styles.image} />
                 </div>
             </div>
         </section>

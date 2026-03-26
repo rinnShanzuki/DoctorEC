@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     FaSave, FaPalette, FaInfoCircle, FaShareAlt, FaClock, FaEdit, FaTimes,
     FaArrowUp, FaArrowDown, FaEye, FaEyeSlash, FaUndo, FaBullhorn,
     FaTrash, FaPlus, FaGripVertical, FaArrowLeft, FaCog,
-    FaStore, FaShoppingBag, FaFileAlt, FaDesktop, FaHome
+    FaStore, FaShoppingBag, FaFileAlt, FaDesktop, FaHome,
+    FaFont, FaImage, FaUpload
 } from 'react-icons/fa';
 import { useNotification } from '../hooks/useNotification';
 import { adminAPI } from '../../services/api';
+import API_CONFIG from '../../config/api.config';
 
 // Import ACTUAL client components — rendered live
 import Hero from '../../clientside/components/Hero';
@@ -26,9 +28,16 @@ import ServicesPage from '../../clientside/pages/Services';
 import ProductsPage from '../../clientside/pages/Products';
 import AboutPage from '../../clientside/pages/About';
 
+import promo1 from '../../assets/promo1.jpg';
+import promo2 from '../../assets/promo2.jpg';
+import promo3 from '../../assets/promo3.jpg';
+import featured from '../../assets/featured.jpg';
+import featured3 from '../../assets/featured3.jpg';
+
 import './SiteEditor.css';
 
 // ===== DEFAULTS =====
+const DEFAULT_HIGHLIGHTS = [promo1, promo2, promo3, featured, featured3];
 const DAY_LABELS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const DAY_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
@@ -48,7 +57,7 @@ const COLOR_LABELS = {
 };
 const ICON_OPTIONS = ['brain', 'glasses', 'boxes', 'eye', 'heart', 'star', 'clock', 'shield', 'user-md', 'stethoscope', 'medical', 'cog', 'phone', 'video', 'calendar', 'info'];
 
-const DEFAULT_PROMO = { enabled: false, title: '', subtitle: '', description: '', date_range: '', offers: [], cta_text: 'Book Now', cta_link: '/appointments', bg_color: '#5D4037', accent_color: '#FFD700' };
+const DEFAULT_PROMO = { enabled: false, cta_link: '/appointments' };
 const DEFAULT_FEATURES = {
     enabled: true, title: 'Why Choose Us?', items: [
         { title: 'AI-Powered Management', description: 'Smart scheduling and patient management.', icon: 'brain' },
@@ -80,6 +89,11 @@ const DEFAULT_PRODUCTS_PAGE = {
         { key: 'prescription_required', label: 'Prescription Required', values: ['All', 'Yes', 'No'], enabled: false, type: 'buttons' },
         { key: 'price_range', label: 'Price Range', type: 'range', max: 3000, enabled: true },
     ],
+    product_details: {
+        name: true, price: false, category: true, brand: true, sex: true, 
+        age: true, frame_shape: true, frame_color: true, tint: true, 
+        feature: true, grade: true, description: true
+    }
 };
 const DEFAULT_ABOUT = {
     mission_text: 'To provide accessible, high-quality, and personalized eye care services to our community.',
@@ -89,7 +103,6 @@ const DEFAULT_ABOUT = {
     show_gallery: true, show_map: true,
 };
 const DEFAULT_LAYOUT = [
-    { id: 'landing-hero', label: 'Landing Page Hero', visible: true },
     { id: 'hero', label: 'Hero Banner', visible: true },
     { id: 'promo', label: 'Promotions', visible: true },
     { id: 'slider', label: 'Image Slider', visible: true },
@@ -98,6 +111,28 @@ const DEFAULT_LAYOUT = [
     { id: 'products', label: 'Product Preview', visible: true },
     { id: 'cta', label: 'Call to Action', visible: true },
 ];
+
+const FONT_OPTIONS_HEADING = [
+    { value: "'Poppins', sans-serif", label: 'Poppins' },
+    { value: "'Montserrat', sans-serif", label: 'Montserrat' },
+    { value: "'Playfair Display', serif", label: 'Playfair Display' },
+    { value: "'Lora', serif", label: 'Lora' },
+    { value: "'Raleway', sans-serif", label: 'Raleway' },
+];
+const FONT_OPTIONS_BODY = [
+    { value: "'Inter', sans-serif", label: 'Inter' },
+    { value: "'Roboto', sans-serif", label: 'Roboto' },
+    { value: "'Open Sans', sans-serif", label: 'Open Sans' },
+    { value: "'Lato', sans-serif", label: 'Lato' },
+    { value: "'Nunito', sans-serif", label: 'Nunito' },
+];
+const DEFAULT_TYPOGRAPHY = {
+    heading_font: "'Poppins', sans-serif",
+    body_font: "'Inter', sans-serif",
+    heading_size: 'medium',
+    body_size: 'medium',
+};
+const SIZE_SCALE = { small: 0.9, medium: 1, large: 1.1 };
 
 // ===== MAIN COMPONENT =====
 const SiteEditor = () => {
@@ -123,8 +158,44 @@ const SiteEditor = () => {
     const [servicesCfg, setServicesCfg] = useState({ ...DEFAULT_SERVICES_PAGE });
     const [productsCfg, setProductsCfg] = useState({ ...DEFAULT_PRODUCTS_PAGE });
     const [aboutCfg, setAboutCfg] = useState({ ...DEFAULT_ABOUT });
+    const [typography, setTypography] = useState({ ...DEFAULT_TYPOGRAPHY });
+    const [heroImages, setHeroImages] = useState({ cover: '', fg: '' });
+    const [promoBg, setPromoBg] = useState('');
+    const [sliderImages, setSliderImages] = useState([]);
+    const [uploading, setUploading] = useState(false);
+    const heroFileRef = useRef(null);
+    const heroFgFileRef = useRef(null);
+    const sliderFileRef = useRef(null);
+    const promoBgFileRef = useRef(null);
 
     useEffect(() => { fetchSettings(); }, []);
+
+    // === LIVE COLOR PREVIEW — apply CSS variables instantly ===
+    useEffect(() => {
+        const root = document.documentElement;
+        Object.entries(colors).forEach(([key, value]) => {
+            if (value && typeof value === 'string' && value.startsWith('#')) {
+                root.style.setProperty(`--${key}`, value);
+            }
+        });
+    }, [colors]);
+
+    // === LIVE TYPOGRAPHY PREVIEW ===
+    useEffect(() => {
+        const root = document.documentElement;
+        if (typography.heading_font) {
+            root.style.setProperty('--font-heading-poppins', typography.heading_font);
+            root.style.setProperty('--font-heading-montserrat', typography.heading_font);
+        }
+        if (typography.body_font) {
+            root.style.setProperty('--font-body-inter', typography.body_font);
+            root.style.setProperty('--font-body-roboto', typography.body_font);
+        }
+        const scale = SIZE_SCALE[typography.heading_size] || 1;
+        root.style.setProperty('--heading-scale', scale);
+        const bodyScale = SIZE_SCALE[typography.body_size] || 1;
+        root.style.setProperty('--body-scale', bodyScale);
+    }, [typography]);
 
     const fetchSettings = async () => {
         try {
@@ -143,6 +214,12 @@ const SiteEditor = () => {
             setServicesCfg({ ...DEFAULT_SERVICES_PAGE, ...p('services_page_settings', {}) });
             setProductsCfg({ ...DEFAULT_PRODUCTS_PAGE, ...p('products_page_settings', {}) });
             setAboutCfg({ ...DEFAULT_ABOUT, ...p('about_page_settings', {}) });
+            setTypography({ ...DEFAULT_TYPOGRAPHY, ...p('typography_settings', {}) });
+            setHeroImages({ cover: data.hero_cover_image || '', fg: data.hero_fg_image || '' });
+            setPromoBg(data.promo_bg_image || '');
+            // Load slider images
+            const highlights = p('highlights', null);
+            setSliderImages(highlights !== null && Array.isArray(highlights) ? highlights : DEFAULT_HIGHLIGHTS);
             const hrs = p('clinic_hours', null);
             if (hrs) {
                 // Normalize: convert legacy 'open' field to 'enabled' for consistency
@@ -189,10 +266,79 @@ const SiteEditor = () => {
         const n = [...homepageLayout]; n[idx] = { ...n[idx], visible: !n[idx].visible }; setHomepageLayout(n);
     };
 
+    // === IMAGE UPLOAD HANDLERS ===
+    const handleImageUpload = async (file, key, onSuccess) => {
+        if (!file) return;
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('key', key);
+            const res = await adminAPI.uploadSiteImage(formData);
+            const url = res.data.url;
+            if (onSuccess) onSuccess(url);
+            showNotification('Image uploaded!', 'success');
+        } catch (err) {
+            console.error('Upload error:', err);
+            showNotification('Failed to upload image', 'error');
+        }
+        setUploading(false);
+    };
+
+    const handleHeroCoverUpload = (e) => {
+        const file = e.target.files[0];
+        handleImageUpload(file, 'hero_cover_image', (url) => setHeroImages(p => ({ ...p, cover: url })));
+    };
+    const handleHeroFgUpload = (e) => {
+        const file = e.target.files[0];
+        handleImageUpload(file, 'hero_fg_image', (url) => setHeroImages(p => ({ ...p, fg: url })));
+    };
+    const handlePromoBgUpload = (e) => {
+        const file = e.target.files[0];
+        handleImageUpload(file, 'promo_bg_image', (url) => setPromoBg(url));
+    };
+
+    const handleSliderImageUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        setUploading(true);
+        try {
+            const timestamp = Date.now();
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('key', `highlight_${timestamp}`);
+            const res = await adminAPI.uploadSiteImage(formData);
+            const url = res.data.url;
+            const newImages = [...sliderImages, url];
+            setSliderImages(newImages);
+            await saveKey('highlights', newImages);
+            showNotification('Slider image added!', 'success');
+        } catch (err) {
+            showNotification('Failed to upload slider image', 'error');
+        }
+        setUploading(false);
+    };
+    const handleSliderImageRemove = async (idx) => {
+        const newImages = sliderImages.filter((_, i) => i !== idx);
+        setSliderImages(newImages);
+        await saveKey('highlights', newImages);
+        showNotification('Image removed', 'success');
+    };
+
+    const resolveImageUrl = (url) => {
+        if (!url) return '';
+        if (url.startsWith('http')) return url;
+        if (url.startsWith('/storage/')) {
+            const base = API_CONFIG.BASE_URL.replace('/api/v1', '');
+            return `${base}${url}`;
+        }
+        return url;
+    };
+
     const sectionComponents = {
-        'landing-hero': <LandingHero key="landing-hero" />,
-        hero: <Hero key="hero" />,
-        promo: <PromoSection key="promo" />,
+        'landing-hero': <LandingHero key="landing-hero" headline={clinicInfo.hero_headline} subheadline={clinicInfo.hero_subheadline} coverImage={heroImages.cover ? resolveImageUrl(heroImages.cover) : undefined} fgImage={heroImages.fg ? resolveImageUrl(heroImages.fg) : undefined} />,
+        hero: <Hero key="hero" headline={clinicInfo.hero_headline} subheadline={clinicInfo.hero_subheadline} coverImage={heroImages.cover ? resolveImageUrl(heroImages.cover) : undefined} fgImage={heroImages.fg ? resolveImageUrl(heroImages.fg) : undefined} />,
+        promo: <PromoSection key="promo" promoProps={promo} bgImage={promoBg ? resolveImageUrl(promoBg) : undefined} />,
         slider: <ImageSlider key="slider" />,
         services: <AppointmentTypes key="services" />,
         features: <Features key="features" />,
@@ -232,6 +378,7 @@ const SiteEditor = () => {
                     <button className={`wde-global-btn ${activePanel === 'clinic' ? 'active' : ''}`} onClick={() => setActivePanel(activePanel === 'clinic' ? null : 'clinic')}><FaInfoCircle /> Clinic</button>
                     <button className={`wde-global-btn ${activePanel === 'social' ? 'active' : ''}`} onClick={() => setActivePanel(activePanel === 'social' ? null : 'social')}><FaShareAlt /> Social</button>
                     <button className={`wde-global-btn ${activePanel === 'hours' ? 'active' : ''}`} onClick={() => setActivePanel(activePanel === 'hours' ? null : 'hours')}><FaClock /> Hours</button>
+                    <button className={`wde-global-btn ${activePanel === 'typography' ? 'active' : ''}`} onClick={() => setActivePanel(activePanel === 'typography' ? null : 'typography')}><FaFont /> Fonts</button>
                 </div>
                 <div className="wde-topbar-right">
                     {activePage === 'home' && <button className="wde-save-all-btn" disabled={saving} onClick={() => handleSave('homepage_layout', homepageLayout, 'Layout')}><FaSave /> {saving ? 'Saving...' : 'Save Layout'}</button>}
@@ -293,7 +440,7 @@ const SiteEditor = () => {
                                 <button className="wde-edit-float" onClick={() => setActivePanel('services-page')}><FaEdit /> Edit Settings</button>
                             </div>
                         )}
-                        <div className="wde-section-live" onClick={() => setActivePanel('services-page')}><ServicesPage /></div>
+                        <div className="wde-section-live" onClick={() => setActivePanel('services-page')}><ServicesPage hideNavFooter={true} /></div>
                     </div>
                 )}
 
@@ -307,7 +454,7 @@ const SiteEditor = () => {
                                 <button className="wde-edit-float" onClick={() => setActivePanel('products-page')}><FaEdit /> Edit Settings</button>
                             </div>
                         )}
-                        <div className="wde-section-live" onClick={() => setActivePanel('products-page')}><ProductsPage /></div>
+                        <div className="wde-section-live" onClick={() => setActivePanel('products-page')}><ProductsPage hideNavFooter={true} /></div>
                     </div>
                 )}
 
@@ -321,7 +468,7 @@ const SiteEditor = () => {
                                 <button className="wde-edit-float" onClick={() => setActivePanel('about-page')}><FaEdit /> Edit Settings</button>
                             </div>
                         )}
-                        <div className="wde-section-live" onClick={() => setActivePanel('about-page')}><AboutPage /></div>
+                        <div className="wde-section-live" onClick={() => setActivePanel('about-page')}><AboutPage hideNavFooter={true} /></div>
                     </div>
                 )}
 
@@ -353,7 +500,7 @@ const SiteEditor = () => {
     );
 
     function getPanelTitle(p) {
-        return { 'landing-hero': 'Edit Landing Page Hero', hero: 'Edit Hero Banner', promo: 'Edit Promotions', slider: 'Edit Image Slider', services: 'Edit Info Cards', features: 'Edit Features', products: 'Edit Product Preview', cta: 'Edit Call to Action', colors: 'Brand Colors', clinic: 'Clinic Information', social: 'Social Media', hours: 'Clinic Hours', 'services-page': 'Services Page', 'products-page': 'Products Page', 'about-page': 'About Page' }[p] || 'Edit';
+        return { 'landing-hero': 'Edit Landing Page Hero', hero: 'Edit Hero Banner', promo: 'Edit Promotions', slider: 'Edit Image Slider', services: 'Edit Info Cards', features: 'Edit Features', products: 'Edit Product Preview', cta: 'Edit Call to Action', colors: 'Brand Colors', clinic: 'Clinic Information', social: 'Social Media', hours: 'Clinic Hours', typography: 'Typography & Fonts', 'services-page': 'Services Page', 'products-page': 'Products Page', 'about-page': 'About Page' }[p] || 'Edit';
     }
 
     function renderPanel(p) {
@@ -368,27 +515,65 @@ const SiteEditor = () => {
             case 'hero': return (<>
                 <div className="wde-field"><label>Headline</label><input value={clinicInfo.hero_headline} onChange={e => setClinicInfo(p => ({ ...p, hero_headline: e.target.value }))} placeholder="Precision Care for Every Pair" /></div>
                 <div className="wde-field"><label>Sub-headline</label><textarea value={clinicInfo.hero_subheadline} onChange={e => setClinicInfo(p => ({ ...p, hero_subheadline: e.target.value }))} rows={3} /></div>
+                <h4 className="wde-sub">Hero Images</h4>
+                <div className="wde-field">
+                    <label>Cover Background Image</label>
+                    <div className="wde-image-upload">
+                        {heroImages.cover && <img src={resolveImageUrl(heroImages.cover)} alt="Cover" className="wde-image-preview" />}
+                        <button className="wde-upload-btn" onClick={() => heroFileRef.current?.click()} disabled={uploading}>
+                            <FaUpload /> {uploading ? 'Uploading...' : 'Upload Cover Image'}
+                        </button>
+                        <input type="file" ref={heroFileRef} style={{ display: 'none' }} accept="image/*" onChange={handleHeroCoverUpload} />
+                        <p className="wde-hint">Recommended: 1920×800px, JPG/PNG</p>
+                    </div>
+                </div>
+                <div className="wde-field">
+                    <label>Foreground Image (floating product)</label>
+                    <div className="wde-image-upload">
+                        {heroImages.fg && <img src={resolveImageUrl(heroImages.fg)} alt="Foreground" className="wde-image-preview" />}
+                        <button className="wde-upload-btn" onClick={() => heroFgFileRef.current?.click()} disabled={uploading}>
+                            <FaUpload /> {uploading ? 'Uploading...' : 'Upload Foreground Image'}
+                        </button>
+                        <input type="file" ref={heroFgFileRef} style={{ display: 'none' }} accept="image/*" onChange={handleHeroFgUpload} />
+                        <p className="wde-hint">Recommended: PNG with transparent background</p>
+                    </div>
+                </div>
                 <div className="wde-panel-save"><button className="wde-save-btn" disabled={saving} onClick={() => handleSaveBatch([['hero_headline', clinicInfo.hero_headline], ['hero_subheadline', clinicInfo.hero_subheadline]], 'Hero')}><FaSave /> Save</button></div>
             </>);
 
             case 'promo': return (<>
                 <div className="wde-toggle"><label>Enable Promo</label><input type="checkbox" checked={promo.enabled} onChange={e => setPromo(p => ({ ...p, enabled: e.target.checked }))} /></div>
                 {promo.enabled && (<>
-                    <div className="wde-field"><label>Title</label><input value={promo.title} onChange={e => setPromo(p => ({ ...p, title: e.target.value }))} /></div>
-                    <div className="wde-field"><label>Subtitle</label><input value={promo.subtitle} onChange={e => setPromo(p => ({ ...p, subtitle: e.target.value }))} /></div>
-                    <div className="wde-field"><label>Description</label><textarea value={promo.description} onChange={e => setPromo(p => ({ ...p, description: e.target.value }))} rows={3} /></div>
-                    <div className="wde-field"><label>Date Range</label><input value={promo.date_range} onChange={e => setPromo(p => ({ ...p, date_range: e.target.value }))} placeholder="Mar 1 - Mar 15" /></div>
-                    <div className="wde-field"><label>CTA Text</label><input value={promo.cta_text} onChange={e => setPromo(p => ({ ...p, cta_text: e.target.value }))} /></div>
-                    <div className="wde-field"><label>CTA Link</label><input value={promo.cta_link} onChange={e => setPromo(p => ({ ...p, cta_link: e.target.value }))} /></div>
-                    <div className="wde-field"><label>Background Color</label><div className="wde-color-row"><input type="color" value={promo.bg_color} onChange={e => setPromo(p => ({ ...p, bg_color: e.target.value }))} /><input className="wde-hex" value={promo.bg_color} onChange={e => setPromo(p => ({ ...p, bg_color: e.target.value }))} /></div></div>
-                    <div className="wde-field"><label>Accent Color</label><div className="wde-color-row"><input type="color" value={promo.accent_color} onChange={e => setPromo(p => ({ ...p, accent_color: e.target.value }))} /><input className="wde-hex" value={promo.accent_color} onChange={e => setPromo(p => ({ ...p, accent_color: e.target.value }))} /></div></div>
-                    <div className="wde-field"><label>Offers (one per line)</label><textarea value={(promo.offers || []).join('\n')} onChange={e => setPromo(p => ({ ...p, offers: e.target.value.split('\n').filter(Boolean) }))} rows={4} /></div>
+                    <div className="wde-field">
+                        <label>Promotional Image</label>
+                        <div className="wde-image-upload">
+                            {promoBg && <img src={resolveImageUrl(promoBg)} alt="Promo Banner" className="wde-image-preview" />}
+                            <button className="wde-upload-btn" onClick={() => promoBgFileRef.current?.click()} disabled={uploading}>
+                                <FaUpload /> {uploading ? 'Uploading...' : 'Upload Image'}
+                            </button>
+                            <input type="file" ref={promoBgFileRef} style={{ display: 'none' }} accept="image/*" onChange={handlePromoBgUpload} />
+                            <p className="wde-hint">Upload a high-quality image. The section size will adapt to the image dimensions.</p>
+                        </div>
+                    </div>
+                    <div className="wde-field"><label>Banner Link (Optional)</label><input value={promo.cta_link} onChange={e => setPromo(p => ({ ...p, cta_link: e.target.value }))} placeholder="/appointments" /></div>
                 </>)}
                 <div className="wde-panel-save"><button className="wde-save-btn" disabled={saving} onClick={() => handleSave('promo_settings', promo, 'Promotions')}><FaSave /> Save</button></div>
             </>);
 
             case 'slider': return (<>
-                <p className="wde-hint">Toggle visibility using the 👁 icon on the section bar. Images are managed in the Image Slider component.</p>
+                <p className="wde-hint">Manage slider/highlight images. Toggle section visibility using the 👁 icon on the section bar.</p>
+                <div className="wde-image-grid">
+                    {sliderImages.map((img, idx) => (
+                        <div key={idx} className="wde-image-grid-item">
+                            <img src={resolveImageUrl(img)} alt={`Slide ${idx + 1}`} />
+                            <button className="wde-image-remove" onClick={() => handleSliderImageRemove(idx)} title="Remove"><FaTrash /></button>
+                        </div>
+                    ))}
+                </div>
+                <button className="wde-upload-btn wde-upload-full" onClick={() => sliderFileRef.current?.click()} disabled={uploading}>
+                    <FaPlus /> {uploading ? 'Uploading...' : 'Add Slider Image'}
+                </button>
+                <input type="file" ref={sliderFileRef} style={{ display: 'none' }} accept="image/*" onChange={handleSliderImageUpload} />
                 <div className="wde-panel-save"><button className="wde-save-btn" disabled={saving} onClick={() => handleSave('homepage_layout', homepageLayout, 'Layout')}><FaSave /> Save Layout</button></div>
             </>);
 
@@ -487,6 +672,43 @@ const SiteEditor = () => {
                 <div className="wde-panel-save"><button className="wde-save-btn" disabled={saving} onClick={() => handleSave('clinic_hours', clinicHours, 'Hours')}><FaSave /> Save</button></div>
             </>);
 
+            case 'typography': return (<>
+                <div className="wde-field">
+                    <label>Heading Font</label>
+                    <select value={typography.heading_font} onChange={e => setTypography(p => ({ ...p, heading_font: e.target.value }))}>
+                        {FONT_OPTIONS_HEADING.map(f => <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>)}
+                    </select>
+                    <div className="wde-font-preview" style={{ fontFamily: typography.heading_font, fontSize: '1.5rem', fontWeight: 700, marginTop: 8 }}>The quick brown fox</div>
+                </div>
+                <div className="wde-field">
+                    <label>Body Font</label>
+                    <select value={typography.body_font} onChange={e => setTypography(p => ({ ...p, body_font: e.target.value }))}>
+                        {FONT_OPTIONS_BODY.map(f => <option key={f.value} value={f.value} style={{ fontFamily: f.value }}>{f.label}</option>)}
+                    </select>
+                    <div className="wde-font-preview" style={{ fontFamily: typography.body_font, fontSize: '1rem', marginTop: 8 }}>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</div>
+                </div>
+                <div className="wde-field">
+                    <label>Heading Size</label>
+                    <div className="wde-size-buttons">
+                        {['small', 'medium', 'large'].map(s => (
+                            <button key={s} className={`wde-size-btn ${typography.heading_size === s ? 'active' : ''}`} onClick={() => setTypography(p => ({ ...p, heading_size: s }))}>{s.charAt(0).toUpperCase() + s.slice(1)}</button>
+                        ))}
+                    </div>
+                </div>
+                <div className="wde-field">
+                    <label>Body Size</label>
+                    <div className="wde-size-buttons">
+                        {['small', 'medium', 'large'].map(s => (
+                            <button key={s} className={`wde-size-btn ${typography.body_size === s ? 'active' : ''}`} onClick={() => setTypography(p => ({ ...p, body_size: s }))}>{s.charAt(0).toUpperCase() + s.slice(1)}</button>
+                        ))}
+                    </div>
+                </div>
+                <div className="wde-panel-save">
+                    <button className="wde-reset-btn" onClick={() => setTypography({ ...DEFAULT_TYPOGRAPHY })}><FaUndo /> Reset</button>
+                    <button className="wde-save-btn" disabled={saving} onClick={() => handleSave('typography_settings', typography, 'Typography')}><FaSave /> Save</button>
+                </div>
+            </>);
+
             case 'services-page': return (<>
                 <div className="wde-field"><label>Page Title</label><input value={servicesCfg.page_title} onChange={e => setServicesCfg(p => ({ ...p, page_title: e.target.value }))} /></div>
                 <div className="wde-field"><label>Page Subtitle</label><input value={servicesCfg.page_subtitle} onChange={e => setServicesCfg(p => ({ ...p, page_subtitle: e.target.value }))} /></div>
@@ -513,6 +735,18 @@ const SiteEditor = () => {
                         )}
                     </div>
                 ))}
+                
+                <h4 className="wde-sub">Product Information Details (Modal)</h4>
+                {['name', 'price', 'category', 'brand', 'sex', 'age', 'frame_shape', 'frame_color', 'tint', 'feature', 'grade', 'description'].map(field => {
+                    const label = field === 'frame_shape' ? 'Frame Shape' : field === 'frame_color' ? 'Frame Color' : field.charAt(0).toUpperCase() + field.slice(1);
+                    return (
+                        <div key={field} className="wde-toggle">
+                            <label>Show {label}</label>
+                            <input type="checkbox" checked={productsCfg.product_details?.[field] ?? (field !== 'price')} onChange={e => setProductsCfg(p => ({ ...p, product_details: { ...(p.product_details || {}), [field]: e.target.checked } }))} />
+                        </div>
+                    );
+                })}
+
                 <div className="wde-panel-save"><button className="wde-save-btn" disabled={saving} onClick={() => handleSave('products_page_settings', productsCfg, 'Products Page')}><FaSave /> Save</button></div>
             </>);
 

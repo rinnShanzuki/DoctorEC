@@ -10,4 +10,12 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+    server: {
+        host: true,
+        allowedHosts: ['hommies.site', 'www.hommies.site'],
+    },
+     preview: {
+        host: true,
+        allowedHosts: ['hommies.site', 'www.hommies.site'],
+    }
 });

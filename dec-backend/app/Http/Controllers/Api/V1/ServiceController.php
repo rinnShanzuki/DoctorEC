@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Service;
 use App\Traits\ApiResponses;
 use App\Events\ServiceUpdated;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 
 class ServiceController extends Controller
@@ -115,6 +116,14 @@ class ServiceController extends Controller
             ];
 
             event(new ServiceUpdated('created', $result));
+            
+            // Broadcast notification to all verified clients
+            EmailService::sendClinicNotification(
+                'New Service Available: ' . $service->name,
+                "We have added a new service which you can now book online! <br><br> <strong>Details:</strong> " . ($service->description ?? 'Contact us for more info.') . "<br><strong>Price:</strong> ₱" . number_format($service->price, 2),
+                'Book an Appointment',
+                rtrim(config('app.url', 'http://localhost:8000'), '/') . (str_contains(config('app.url'), '8000') ? ':5173' : '') . '/appointments'
+            );
 
             return $this->created($result, 'Service created successfully');
         } catch (\Exception $e) {

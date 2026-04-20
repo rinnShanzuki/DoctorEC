@@ -48,15 +48,6 @@ const ProductDetailsModal = ({ isOpen, onClose, product, detailsConfig = {} }) =
                                 </p>
                             )}
 
-                            <div style={styles.customizeSection}>
-                                <label style={styles.label}>Customize Grade (Optional):</label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter your grade (e.g., OD: -1.00, OS: -1.25)"
-                                    style={styles.input}
-                                />
-                            </div>
-
                             <div style={styles.actions}>
                                 <button style={styles.reserveBtn} disabled>Available In-Store</button>
                             </div>
@@ -210,25 +201,6 @@ const styles = {
         display: 'flex',
         flexDirection: 'column',
         gap: '5px',
-    },
-    customizeSection: {
-        marginBottom: '20px',
-    },
-    label: {
-        display: 'block',
-        fontFamily: 'var(--font-body-inter)',
-        fontSize: '0.9rem',
-        color: '#3E2723',
-        marginBottom: '5px',
-        fontWeight: '500',
-    },
-    input: {
-        width: '100%',
-        padding: '10px',
-        borderRadius: '8px',
-        border: '1px solid #ddd',
-        fontFamily: 'var(--font-body-inter)',
-        fontSize: '0.9rem',
     },
 };
 

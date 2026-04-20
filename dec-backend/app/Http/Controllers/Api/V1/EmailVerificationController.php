@@ -139,11 +139,13 @@ class EmailVerificationController extends Controller
         } catch (\Exception $e) {
             \Log::error('Email verification send failed: ' . $e->getMessage());
 
+            // Delete the OTP as it wasn't successfully delivered
+            DB::table('email_verifications')->where('email', $email)->delete();
+
             return response()->json([
-                'status' => 'success',
-                'message' => 'Verification code sent to your email.',
-                'debug_otp' => config('app.debug') ? $otp : null,
-            ]);
+                'status' => 'error',
+                'message' => 'Failed to send verification email. Please ensure your email address is correct and try again.',
+            ], 500);
         }
     }
 

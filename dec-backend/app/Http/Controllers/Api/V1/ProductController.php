@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateProductRequest;
 use App\Models\Product;
 use App\Traits\ApiResponses;
 use App\Events\ProductUpdated;
+use App\Services\EmailService;
 use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
@@ -82,6 +83,9 @@ class ProductController extends Controller
             }
 
             event(new ProductUpdated('created', $product->toArray()));
+            
+            // Broadcast email to all verified clients
+            EmailService::sendNewProductEmail($product);
 
             return $this->created($product, 'Product created successfully');
         } catch (\Exception $e) {

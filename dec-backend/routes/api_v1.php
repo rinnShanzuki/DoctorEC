@@ -29,6 +29,17 @@ use Illuminate\Support\Facades\Route;
 // Unified authentication route (checks client, admin, and doctor tables)
 Route::post('/auth/login', [UnifiedAuthController::class, 'login']);
 
+// Google OAuth routes (public)
+Route::get('/auth/google/redirect', [\App\Http\Controllers\Api\V1\GoogleAuthController::class, 'redirectToGoogle']);
+Route::get('/auth/google/callback', [\App\Http\Controllers\Api\V1\GoogleAuthController::class, 'handleGoogleCallback']);
+
+Route::post('/auth/google', [\App\Http\Controllers\Api\V1\GoogleAuthController::class, 'handleGoogleLogin']);
+Route::post('/auth/google/verify-otp', [\App\Http\Controllers\Api\V1\GoogleAuthController::class, 'verifyOtp']);
+
+// Google OAuth authentication routes (public)
+Route::post('/auth/google', [\App\Http\Controllers\Api\V1\GoogleAuthController::class, 'handleGoogleLogin']);
+Route::post('/auth/google/verify-otp', [\App\Http\Controllers\Api\V1\GoogleAuthController::class, 'verifyOtp']);
+
 // Client authentication routes (public)
 Route::prefix('client')->group(function () {
     Route::post('/register', [ClientAccountController::class, 'register']);
@@ -36,6 +47,7 @@ Route::prefix('client')->group(function () {
     
     // Protected client routes (require authentication)
     Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/me', [ClientAccountController::class, 'me']);
         Route::get('/appointments', [AppointmentController::class, 'getClientAppointments']);
         Route::post('/appointments', [AppointmentController::class, 'store']);
         Route::put('/appointments/{id}/reschedule', [AppointmentController::class, 'rescheduleAppointment']);

@@ -60,6 +60,17 @@ class ClientAccountController extends Controller
             );
             $otpData = $otpResponse->getData(true);
 
+            // If email fails to send (e.g. invalid email domain)
+            if (($otpData['status'] ?? 'error') === 'error') {
+                // Rollback client creation
+                $client->delete();
+                
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $otpData['message'] ?? 'Failed to send verification email. Ensure your email is correct.',
+                ], 400);
+            }
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Registration successful! Please check your email for the verification code.',
@@ -128,6 +139,13 @@ class ClientAccountController extends Controller
                     $client->first_name
                 );
                 $otpData = $otpResponse->getData(true);
+
+                if (($otpData['status'] ?? 'error') === 'error') {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Your account requires verification, but we failed to send the email. Please ensure your email is correct and contact support.',
+                    ], 400);
+                }
 
                 return response()->json([
                     'status' => 'error',

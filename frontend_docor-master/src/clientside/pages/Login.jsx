@@ -4,6 +4,8 @@ import "./Login.css";
 import logo from "../../assets/logo.jpg";
 import coverImage from "../../assets/cover-nobg.png";
 import { FaEnvelope, FaLock, FaArrowRight, FaArrowLeft } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
+
 import { useAuth } from "../../context/AuthContext";
 
 function Login() {
@@ -137,6 +139,13 @@ function Login() {
                             </Link>
                         </div>
                     </form>
+
+                    <div className="or-divider">OR</div>
+
+                    <a href="http://localhost:8000/api/v1/auth/google/redirect" className="google-btn">
+                        <FcGoogle size={20} />
+                        Sign in with Google
+                    </a>
                     <p className="switch-mode">
                         Don't have an account? <Link to="/signup">Register</Link>
                     </p>

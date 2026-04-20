@@ -9,6 +9,7 @@ use App\Models\Prescription;
 use App\Models\PatientRecord;
 use App\Models\Doctor;
 use App\Models\SiteSetting;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -47,6 +48,8 @@ class DoctorModuleController extends Controller
         $appointment->status = 'Approved';
         $appointment->save();
 
+        EmailService::sendAppointmentStatusEmail($appointment);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Appointment accepted',
@@ -66,6 +69,8 @@ class DoctorModuleController extends Controller
 
         $appointment->status = 'Cancelled';
         $appointment->save();
+
+        EmailService::sendAppointmentStatusEmail($appointment);
 
         return response()->json([
             'status' => 'success',
@@ -210,6 +215,8 @@ class DoctorModuleController extends Controller
         // Mark appointment as Completed
         $appointment->status = 'completed';
         $appointment->save();
+
+        EmailService::sendAppointmentStatusEmail($appointment);
 
         // Create POS Notification
         $customerName = '';

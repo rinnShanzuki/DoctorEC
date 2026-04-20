@@ -20,4 +20,3 @@ if %errorlevel%==0 (
     "%LOCALAPPDATA%\Programs\Python\Python311\python.exe" app.py
 )
 pause
-

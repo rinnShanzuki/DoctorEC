@@ -53,6 +53,13 @@ class UnifiedAuthController extends Controller
                 );
                 $otpData = $otpResponse->getData(true);
 
+                if (($otpData['status'] ?? 'error') === 'error') {
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => 'Your account requires verification, but we failed to send the email. Please ensure your email is correct and contact support.',
+                    ], 400);
+                }
+
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Please verify your email address first. A new verification code has been sent.',

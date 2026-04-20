@@ -120,19 +120,50 @@ export const AuthProvider = ({ children }) => {
     }, [user, resetIdleTimer]);
 
     useEffect(() => {
-        // Check for stored client first, then admin, then doctor
-        const storedClient = clientAuthService.getStoredClient();
-        const storedAdmin = adminAuthService.getStoredAdmin();
-        const storedDoctor = doctorAuthService.getStoredDoctor();
+        const initializeAuth = async () => {
+            // Check for token in URL (from Google Login redirect)
+            const urlParams = new URLSearchParams(window.location.search);
+            const tokenFromUrl = urlParams.get('token');
 
-        if (storedClient && clientAuthService.isAuthenticated()) {
-            setUser(storedClient);
-        } else if (storedAdmin && adminAuthService.isAuthenticated()) {
-            setUser(storedAdmin);
-        } else if (storedDoctor && doctorAuthService.isAuthenticated()) {
-            setUser(storedDoctor);
-        }
-        setLoading(false);
+            if (tokenFromUrl) {
+                // Store token temporarily to allow getCurrentClient to use it
+                Cookies.set('client_token', tokenFromUrl, { expires: 7 });
+                
+                // Clean up the URL
+                const url = new URL(window.location.href);
+                url.searchParams.delete('token');
+                window.history.replaceState({}, document.title, url.pathname);
+                
+                try {
+                    // Fetch user info from backend
+                    const client = await clientAuthService.getCurrentClient();
+                    if (client) {
+                        clientAuthService.storeClient(client, tokenFromUrl);
+                        setUser(client);
+                        setLoading(false);
+                        return; // Successfully authenticated
+                    }
+                } catch (error) {
+                    console.error("Error fetching Google authenticated client:", error);
+                }
+            }
+
+            // Fallback: Check for existing stored sessions
+            const storedClient = clientAuthService.getStoredClient();
+            const storedAdmin = adminAuthService.getStoredAdmin();
+            const storedDoctor = doctorAuthService.getStoredDoctor();
+
+            if (storedClient && clientAuthService.isAuthenticated()) {
+                setUser(storedClient);
+            } else if (storedAdmin && adminAuthService.isAuthenticated()) {
+                setUser(storedAdmin);
+            } else if (storedDoctor && doctorAuthService.isAuthenticated()) {
+                setUser(storedDoctor);
+            }
+            setLoading(false);
+        };
+
+        initializeAuth();
     }, []);
 
     const login = async (email, password) => {

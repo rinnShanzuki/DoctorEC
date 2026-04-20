@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Appointment;
 use App\Http\Controllers\Controller;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
@@ -81,6 +82,9 @@ class AppointmentController extends Controller
             $appointment = Appointment::findOrFail($id);
             $appointment->status = $validated['status'];
             $appointment->save();
+
+            // Send email notification to patient
+            EmailService::sendAppointmentStatusEmail($appointment);
 
             return response()->json([
                 'status' => 'success',
@@ -279,6 +283,11 @@ class AppointmentController extends Controller
             $appointment->status = 'pending'; // Reset to pending after reschedule
             $appointment->save();
 
+            // Send email notification to patient
+            $appointment->status = 'rescheduled'; // Temporarily pass this status for the email template
+            EmailService::sendAppointmentStatusEmail($appointment);
+            $appointment->status = 'pending'; // Restoring actual status for JSON response
+
             return response()->json([
                 'status' => 'success',
                 'message' => 'Appointment rescheduled successfully',
@@ -319,6 +328,9 @@ class AppointmentController extends Controller
 
             $appointment->status = 'cancelled';
             $appointment->save();
+
+            // Send email notification to patient
+            EmailService::sendAppointmentStatusEmail($appointment);
 
             return response()->json([
                 'status' => 'success',

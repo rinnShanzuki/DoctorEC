@@ -18,6 +18,7 @@ import About from './clientside/pages/About';
 import SignUp from './clientside/pages/SignUp';
 import Login from './clientside/pages/Login';
 import ForgotPassword from './clientside/pages/ForgotPassword';
+import LoginSuccess from './clientside/pages/LoginSuccess';
 import SearchResults from './clientside/pages/SearchResults';
 import MyAppointments from './clientside/pages/MyAppointments';
 
@@ -119,6 +120,7 @@ function AppContent() {
         {/* Auth Routes - Standalone Pages */}
         <Route path="/signup" element={<SignUp />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/login-success" element={<LoginSuccess />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/signin" element={<Navigate to="/login" replace />} />
         <Route path="/search" element={<SearchResults />} />

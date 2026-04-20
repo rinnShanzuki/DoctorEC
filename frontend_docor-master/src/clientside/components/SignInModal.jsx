@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import "./SignInModal.css";
 import logo from "../../assets/logo.jpg";
 import { FaTimes, FaEnvelope, FaLock, FaArrowRight, FaShieldAlt, FaRedo } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
+
 import { useAuth } from "../../context/AuthContext";
 import { useModal } from "../../context/ModalContext";
 import clientAuthService from "../../services/clientAuthService";
@@ -297,6 +299,14 @@ function SignInModal({ isOpen, onClose, onSignInSuccess }) {
                     <FaArrowRight className="btn-icon" />
                   </button>
                 </form>
+
+                <div className="or-divider">OR</div>
+
+                <a href="http://localhost:8000/api/v1/auth/google/redirect" className="google-btn">
+                  <FcGoogle size={20} />
+                  Sign in with Google
+                </a>
+
                 <p className="switch-mode">
                   Don't have an account? <span onClick={openSignUp}>Register</span>
                 </p>

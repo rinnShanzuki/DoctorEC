@@ -277,6 +277,64 @@
     transform: translateX(3px);
 }
 
+/* Google Button */
+.google-btn {
+    background: white;
+    color: #3B2F2B;
+    border: 1px solid #E8D7C9;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    font-size: 13px;
+    margin-top: 5px;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+
+.google-btn:hover {
+    background: #FBF7F3;
+    border-color: #C9A87A;
+    box-shadow: 0 4px 15px rgba(59, 47, 37, 0.1);
+    transform: translateY(-1px);
+}
+
+.google-btn img {
+    width: 18px;
+    height: 18px;
+}
+
+.or-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+    color: #A89B8C;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.or-divider::before,
+.or-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #E8D7C9;
+}
+
+.or-divider:not(:empty)::before {
+    margin-right: 15px;
+}
+
+.or-divider:not(:empty)::after {
+    margin-left: 15px;
+}
+
 .switch-mode {
     text-align: center;
     margin-top: 18px;

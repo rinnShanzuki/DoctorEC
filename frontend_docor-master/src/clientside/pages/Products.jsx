@@ -21,10 +21,15 @@ const DEFAULT_CONFIG = {
     page_title: 'Our Collection',
     page_subtitle: 'Discover our wide range of premium eyewear.',
     filter_attributes: [
-        { key: 'category', label: 'Type', values: ['All', 'Eyeglasses', 'Contact Lenses', 'Sunglasses'], enabled: true, type: 'buttons' },
+        { key: 'category', label: 'Category', values: ['All', 'Eyeglasses', 'Lenses', 'Sunglasses'], enabled: true, type: 'buttons' },
+        { key: 'brand', label: 'Brand', values: ['All'], enabled: true, type: 'buttons' },
         { key: 'sex', label: 'Gender', values: ['All', 'Female', 'Male', 'Unisex'], enabled: true, type: 'buttons' },
         { key: 'age', label: 'Age', values: ['All', 'Adult', 'Teens', 'Kids'], enabled: true, type: 'buttons' },
-        { key: 'price_range', label: 'Price Range', type: 'range', max: 5000, enabled: true },
+        { key: 'price_range', label: 'Price Range', type: 'range', max: 7000, enabled: true },
+        { key: 'shape', label: 'Shape', values: ['All', 'Rectangle', 'Round', 'Square', 'Star'], enabled: true, type: 'buttons' },
+        { key: 'frame_color', label: 'Frame Color', values: ['All', 'Black', 'Brown', 'Gold', 'Silver', 'Blue', 'Red', 'Pink'], enabled: true, type: 'buttons' },
+        { key: 'tint', label: 'Tint', values: ['All', 'Clear'], enabled: true, type: 'buttons' },
+        { key: 'features', label: 'Feature', values: ['All', 'Anti-Rad', 'Photochromic', 'UV Protection', 'Polarized', 'Blue Cut'], enabled: true, type: 'buttons' },
     ],
     product_details: {
         name: true, price: false, category: true, brand: true, sex: true, 

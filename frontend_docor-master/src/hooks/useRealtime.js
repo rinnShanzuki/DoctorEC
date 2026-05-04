@@ -18,6 +18,8 @@ import echo from '../echo';
  */
 export default function useRealtime(channel, event, callback) {
     useEffect(() => {
+        if (!echo) return; // WebSocket server not available — skip
+
         const ch = echo.channel(channel);
         ch.listen(event, callback);
 

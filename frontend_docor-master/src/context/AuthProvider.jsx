@@ -175,10 +175,15 @@ export const AuthProvider = ({ children }) => {
                 const { user_type, client, admin, doctor, token } = response.data;
 
                 if (user_type === 'client' && client) {
+                    // Ensure name field exists for profile display
+                    const clientWithName = {
+                        ...client,
+                        name: client.name || `${client.first_name || ''} ${client.last_name || ''}`.trim()
+                    };
                     // Store as client (uses client_token cookie)
-                    clientAuthService.storeClient(client, token);
-                    setUser(client);
-                    return { success: true, user: client, user_type: 'client' };
+                    clientAuthService.storeClient(clientWithName, token);
+                    setUser(clientWithName);
+                    return { success: true, user: clientWithName, user_type: 'client' };
                 } else if (user_type === 'admin' && admin) {
                     // Add name field for AdminLayout compatibility
                     const adminWithName = {
@@ -230,8 +235,17 @@ export const AuthProvider = ({ children }) => {
             const response = await adminAuthService.login(email, password);
 
             if (response.status === 'success' && response.data.admin) {
-                setUser(response.data.admin);
-                return { success: true, user: response.data.admin };
+                const admin = response.data.admin;
+                // Add name field for AdminLayout compatibility
+                const adminWithName = {
+                    ...admin,
+                    name: `${admin.first_name || ''} ${admin.last_name || ''}`.trim()
+                };
+                // Store in cookies so session persists across page refreshes
+                Cookies.set('auth_token', response.data.token, { expires: 7 });
+                Cookies.set('user_data', JSON.stringify(adminWithName), { expires: 7 });
+                setUser(adminWithName);
+                return { success: true, user: adminWithName };
             }
 
             return { success: false, message: response.message };

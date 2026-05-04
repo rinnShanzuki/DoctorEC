@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Service;
+use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -64,21 +65,103 @@ class ChatbotController extends Controller
         } catch (\Exception $e) {
             Log::error('Chatbot error: ' . $e->getMessage());
             
+            // Fetch real clinic phone for error message fallback
+            $fallbackPhone = SiteSetting::where('key', 'clinic_phone')->value('value') ?? 'our clinic';
+
             ob_end_clean(); // Clear any buffered output before returning JSON
             return response()->json([
                 'success' => false,
-                'message' => "I'm having trouble connecting right now. Please try again in a moment, or you can reach us at (02) 8123-4567.",
+                'message' => "I'm having trouble connecting right now. Please try again in a moment, or you can reach us at {$fallbackPhone}.",
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * Build the system prompt with clinic context
+     * Fetch all clinic information from the site_settings table
+     */
+    private function getClinicInfo(): array
+    {
+        $settings = SiteSetting::whereIn('key', [
+            'clinic_name',
+            'clinic_address',
+            'clinic_phone',
+            'clinic_email',
+            'clinic_tagline',
+            'about_text',
+            'clinic_hours',
+        ])->pluck('value', 'key');
+
+        return [
+            'name'    => $settings['clinic_name'] ?? 'Doctor EC Optical Clinic',
+            'address' => $settings['clinic_address'] ?? '',
+            'phone'   => $settings['clinic_phone'] ?? '',
+            'email'   => $settings['clinic_email'] ?? '',
+            'tagline' => $settings['clinic_tagline'] ?? '',
+            'about'   => $settings['about_text'] ?? '',
+            'hours'   => $settings['clinic_hours'] ?? '{}',
+        ];
+    }
+
+    /**
+     * Format clinic operating hours from JSON into a human-readable string
+     */
+    private function formatClinicHours(string $hoursJson): string
+    {
+        $hours = json_decode($hoursJson, true);
+        if (!$hours || !is_array($hours)) {
+            return "- Please contact the clinic for operating hours.";
+        }
+
+        $dayOrder = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        $lines = [];
+
+        foreach ($dayOrder as $day) {
+            if (!isset($hours[$day])) continue;
+            $info = $hours[$day];
+            $label = ucfirst($day);
+
+            if (!empty($info['enabled'])) {
+                $start = $this->formatTime($info['start'] ?? '09:00');
+                $end   = $this->formatTime($info['end'] ?? '17:00');
+                $lines[] = "- {$label}: {$start} - {$end}";
+            } else {
+                $lines[] = "- {$label}: Closed";
+            }
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * Convert 24h time string to 12h AM/PM format
+     */
+    private function formatTime(string $time): string
+    {
+        $parts = explode(':', $time);
+        $hour = (int) ($parts[0] ?? 0);
+        $min  = $parts[1] ?? '00';
+        $ampm = $hour >= 12 ? 'PM' : 'AM';
+        $h12  = $hour % 12 ?: 12;
+        return "{$h12}:{$min} {$ampm}";
+    }
+
+    /**
+     * Build the system prompt with clinic context from the database
      */
     private function buildSystemPrompt(): string
     {
-        // Fetch current products and services for accurate pricing
+        // ── Fetch real clinic information from the database ──
+        $clinic = $this->getClinicInfo();
+        $clinicName    = $clinic['name'];
+        $clinicAddress = $clinic['address'];
+        $clinicPhone   = $clinic['phone'];
+        $clinicEmail   = $clinic['email'];
+        $clinicTagline = $clinic['tagline'];
+        $clinicAbout   = $clinic['about'];
+        $clinicHours   = $this->formatClinicHours($clinic['hours']);
+
+        // ── Fetch current products and services for accurate pricing ──
         $products = Product::select('name', 'category', 'price', 'stock')
             ->where('stock', '>', 0)
             ->take(20)
@@ -96,12 +179,26 @@ class ChatbotController extends Controller
             return "- {$s->name}: ₱" . number_format($s->price, 2) . " - {$s->description}";
         })->join("\n");
 
-        return <<<PROMPT
-You are the AI assistant for Doctor EC Optical Clinic, a professional optical and eye care clinic in the Philippines.
+        // ── Fetch doctors ──
+        $doctors = \App\Models\Doctor::select('full_name', 'specialization')
+            ->take(10)
+            ->get();
 
-## CRITICAL RESTRICTION - READ THIS FIRST
+        $doctorInfo = $doctors->map(function ($d) {
+            $spec = $d->specialization ? " — {$d->specialization}" : '';
+            return "- Dr. {$d->full_name}{$spec}";
+        })->join("\n");
+
+        return <<<PROMPT
+You are the AI assistant for {$clinicName}, a professional optical and eye care clinic in the Philippines.
+{$clinicTagline}
+
+## ⚠️ ABSOLUTE RULE — ACCURACY FIRST
+You MUST ONLY use the clinic information provided below. NEVER invent, guess, or fabricate any addresses, phone numbers, email addresses, operating hours, prices, or any other clinic details. If the information is not provided below, say "Please contact the clinic directly for that information." DO NOT make up any data.
+
+## CRITICAL RESTRICTION — TOPIC BOUNDARIES
 You are ONLY allowed to answer questions related to:
-- Doctor EC Optical Clinic (location, hours, contact info)
+- {$clinicName} (location, hours, contact info)
 - Eye care and vision health
 - Optical products (glasses, frames, sunglasses, contact lenses)
 - Optical services (eye exams, consultations, fittings)
@@ -109,7 +206,7 @@ You are ONLY allowed to answer questions related to:
 - General eyewear recommendations
 
 For ANY question that is NOT related to optical care, eyewear, eye health, or our clinic, you MUST respond with:
-"I'm sorry, but I can only assist with questions related to Doctor EC Optical Clinic, our eyewear products, eye care services, and appointments. 👓 Is there anything about our optical services I can help you with?"
+"I'm sorry, but I can only assist with questions related to {$clinicName}, our eyewear products, eye care services, and appointments. 👓 Is there anything about our optical services I can help you with?"
 
 DO NOT answer questions about:
 - Politics, news, current events
@@ -129,48 +226,44 @@ DO NOT answer questions about:
 - When discussing SERVICES, mention they can view all services on our Services page
 - When discussing PRODUCTS, mention they can browse our Products page
 
-## Clinic Information
+## ═══════════════════════════════════════
+## OFFICIAL CLINIC INFORMATION (USE ONLY THIS)
+## ═══════════════════════════════════════
 
-**Name:** Doctor EC Optical Clinic
-**Address:** 123 Vision Street, Clarity City, Philippines
-**Phone:** (02) 8123-4567
-**Mobile:** 0917-123-4567
-**Email:** hello@doctorecoptical.com
+**Clinic Name:** {$clinicName}
+**Address:** {$clinicAddress}
+**Contact Numbers:** {$clinicPhone}
+**Email:** {$clinicEmail}
+**About:** {$clinicAbout}
 
 **Operating Hours:**
-- Monday to Saturday: 9:00 AM - 6:00 PM
-- Sunday: Closed
+{$clinicHours}
+
+## Our Doctors
+{$doctorInfo}
 
 ## Services Offered
 {$serviceInfo}
 
-If no services are listed above, mention these standard services:
-- Eye Checkup: ₱500
-- Contact Lens Fitting: ₱800
-- Expert Consultation: ₱300
-- Glasses Repair: Price varies
-- Pediatric Eye Care: ₱600
+If no services are listed above, say "Please visit our Services page or contact the clinic for our current service offerings."
 
 ## Products Available
 {$productInfo}
 
-If no products are listed above, mention we have a wide selection of:
-- Prescription Glasses (from ₱800)
-- Sunglasses (from ₱1,200)
-- Contact Lenses (from ₱500)
-- Reading Glasses (from ₱400)
+If no products are listed above, mention we have a wide selection of eyewear and suggest visiting our Products page.
 
 ## Guidelines
 1. Always be polite and welcoming
 2. If asked about appointment booking, tell them they can book directly here in this chat by clicking the "Book Now" button that will appear, or they can visit the Appointments page on the website
 3. For product recommendations, suggest visiting the Products page for the full catalog
 4. For service inquiries, suggest visiting the Services page to learn more
-5. If you don't know something specific, offer to connect them with staff via phone
+5. If you don't know something specific, offer to connect them with staff via the contact number above
 6. Use "₱" for Philippine Peso prices
 7. Add relevant emojis sparingly to keep responses friendly (👓 📅 ✨)
 8. Never make up prices - if unsure, say "prices may vary" and suggest contacting the clinic
 9. For medical advice, always recommend consulting with an optometrist in person
 10. REMEMBER: Politely decline any question not related to optical/eye care
+11. CRITICAL: When asked about clinic location, address, contact info, or hours — ONLY use the exact information listed under "OFFICIAL CLINIC INFORMATION" above. NEVER make up or guess any details.
 PROMPT;
     }
 

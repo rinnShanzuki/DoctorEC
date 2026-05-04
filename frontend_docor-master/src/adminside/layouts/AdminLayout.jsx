@@ -299,9 +299,7 @@ const AdminLayout = () => {
                                             <button className="dropdown-item" onClick={() => { navigate('/admin/dashboard/history'); setShowSettingsMenu(false); }}>
                                                 Staff Management
                                             </button>
-                                            <button className="dropdown-item" onClick={() => { navigate('/admin/dashboard/site-editor'); setShowSettingsMenu(false); }}>
-                                                Website Settings
-                                            </button>
+
                                             <button className="dropdown-item" onClick={() => { navigate('/admin/dashboard/profile'); setShowSettingsMenu(false); }}>
                                                 Profile Settings
                                             </button>

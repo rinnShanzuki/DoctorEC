@@ -28,3 +28,7 @@ Schedule::command('backup:run')->daily()->at('02:00')
 Schedule::command('backup:run --db-only')->weekly()->sundays()->at('03:00')
     ->appendOutputTo(storage_path('logs/backup.log'))
     ->withoutOverlapping();
+
+Schedule::command('app:send-appointment-reminders')->everyFifteenMinutes()
+    ->appendOutputTo(storage_path('logs/reminders.log'))
+    ->withoutOverlapping();

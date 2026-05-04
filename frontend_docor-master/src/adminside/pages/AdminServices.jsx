@@ -59,22 +59,25 @@ const AdminServices = () => {
 
     const handleSave = async (e) => {
         e.preventDefault();
+        if (loading) return; // Prevent double submission
+        setLoading(true);
         try {
             if (isEditing) {
                 await adminAPI.updateService(currentService.id, currentService);
-                setServices(services.map(s => s.id === currentService.id ? currentService : s));
                 showNotification('Service updated successfully.', 'success');
             } else {
-                const response = await adminAPI.createService(currentService);
-                const newService = response.data.data || response.data;
-                setServices([...services, newService]);
+                await adminAPI.createService(currentService);
                 showNotification('Service created successfully.', 'success');
             }
             setShowModal(false);
             invalidateCache('/services');
+            // Re-fetch from server to avoid duplicates from local + cache insertion
+            await fetchServices();
         } catch (error) {
             console.error('Error saving service:', error);
             showNotification('Failed to save service.', 'error');
+        } finally {
+            setLoading(false);
         }
     };
 

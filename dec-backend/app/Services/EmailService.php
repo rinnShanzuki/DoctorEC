@@ -100,6 +100,56 @@ class EmailService
     }
 
     /**
+     * Send automated appointment reminder email.
+     */
+    public static function sendAppointmentReminderEmail(Appointment $appointment, string $reminderType)
+    {
+        $email = null;
+        $name = 'Valued Patient';
+
+        $appointment->load(['client', 'service', 'doctor']);
+
+        if ($appointment->client) {
+            $email = $appointment->client->email;
+            $name = $appointment->client->first_name;
+        } elseif ($appointment->patient && $appointment->patient->email) {
+            $email = $appointment->patient->email;
+            $name = $appointment->patient->first_name;
+        }
+
+        if (!$email) {
+            return; // Nowhere to send
+        }
+
+        $serviceName = $appointment->service ? $appointment->service->name : 'General Visit';
+        $doctorName = $appointment->doctor ? $appointment->doctor->full_name : 'Our Specialists';
+
+        $subject = "Appointment Reminder: " . ($reminderType === '24h' ? 'Tomorrow' : 'In 1 Hour');
+        
+        $message = $reminderType === '24h' 
+            ? "Hi <strong>{$name}</strong>, this is a reminder that you have an appointment tomorrow."
+            : "Hi <strong>{$name}</strong>, this is a reminder that you have an appointment in 1 hour. Please be ready.";
+
+        $body = self::getBaseTemplate(
+            "Appointment Reminder",
+            $message,
+            "
+            <div style='background: #F5F1EE; padding: 15px; border-radius: 8px; margin: 20px 0;'>
+                <p style='margin: 5px 0;'><strong>Service:</strong> {$serviceName}</p>
+                <p style='margin: 5px 0;'><strong>Date:</strong> {$appointment->appointment_date}</p>
+                <p style='margin: 5px 0;'><strong>Time:</strong> {$appointment->appointment_time}</p>
+                <p style='margin: 5px 0;'><strong>Doctor:</strong> Dr. {$doctorName}</p>
+                <p style='margin: 5px 0;'><strong>Notes:</strong> " . ($appointment->notes ?? 'None') . "</p>
+            </div>
+            ",
+            'View My Appointments',
+            rtrim(config('app.url', 'http://localhost:8000'), '/') . (str_contains(config('app.url'), '8000') ? ':5173' : '') . '/client-my-appointments'
+        );
+
+        self::sendSingleEmail($email, $subject, $body);
+    }
+
+    /**
      * Helper to get status description.
      */
     private static function getStatusDescription(string $status): string

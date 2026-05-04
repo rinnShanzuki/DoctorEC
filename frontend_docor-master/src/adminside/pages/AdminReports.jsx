@@ -5,7 +5,7 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     LineChart, Line, PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
-import { FaCalendarCheck, FaUserMd, FaMoneyBillWave, FaBoxOpen, FaUsers, FaBrain, FaExclamationTriangle, FaChartLine } from 'react-icons/fa';
+import { FaCalendarCheck, FaUserMd, FaMoneyBillWave, FaBoxOpen, FaUsers, FaBrain, FaExclamationTriangle, FaChartLine, FaFileCsv, FaFilePdf } from 'react-icons/fa';
 
 const COLORS = ['#2e7d32', '#c62828', '#ef6c00', '#1565c0', '#6a1b9a', '#8B7355'];
 
@@ -43,7 +43,7 @@ const AppointmentsTab = ({ data }) => {
                         {status_chart?.length > 0 ? (
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
-                                    <Pie data={status_chart} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={4} dataKey="value">
+                                    <Pie data={status_chart} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={4} dataKey="value" isAnimationActive={false}>
                                         {status_chart.map((e, i) => <Cell key={i} fill={e.color || COLORS[i % COLORS.length]} />)}
                                     </Pie>
                                     <Tooltip /><Legend />
@@ -62,7 +62,7 @@ const AppointmentsTab = ({ data }) => {
                                     <XAxis dataKey="label" tick={{ fontSize: 11 }} />
                                     <YAxis allowDecimals={false} />
                                     <Tooltip />
-                                    <Area type="monotone" dataKey="count" stroke="#5D4E37" fill="#D7CCC8" name="Appointments" />
+                                    <Area type="monotone" dataKey="count" stroke="#5D4E37" fill="#D7CCC8" name="Appointments" isAnimationActive={false} />
                                 </AreaChart>
                             </ResponsiveContainer>
                         ) : <p style={{ color: '#888', textAlign: 'center', marginTop: 60 }}>No data</p>}
@@ -79,7 +79,7 @@ const AppointmentsTab = ({ data }) => {
                                 <XAxis type="number" allowDecimals={false} />
                                 <YAxis dataKey="service" type="category" width={120} tick={{ fontSize: 11 }} />
                                 <Tooltip />
-                                <Bar dataKey="count" fill="#5D4E37" />
+                                <Bar dataKey="count" fill="#5D4E37" isAnimationActive={false} />
                             </BarChart>
                         </ResponsiveContainer>
                     ) : <p style={{ color: '#888' }}>No data</p>}
@@ -93,7 +93,7 @@ const AppointmentsTab = ({ data }) => {
                                 <XAxis type="number" allowDecimals={false} />
                                 <YAxis dataKey="doctor" type="category" width={120} tick={{ fontSize: 11 }} />
                                 <Tooltip />
-                                <Bar dataKey="count" fill="#8B7355" />
+                                <Bar dataKey="count" fill="#8B7355" isAnimationActive={false} />
                             </BarChart>
                         </ResponsiveContainer>
                     ) : <p style={{ color: '#888' }}>No data</p>}
@@ -118,7 +118,7 @@ const ServicesTab = ({ data }) => {
                             <XAxis dataKey="name" tick={{ fontSize: 11 }} />
                             <YAxis allowDecimals={false} />
                             <Tooltip /><Legend />
-                            <Bar dataKey="count" fill="#5D4E37" name="Times Availed" />
+                            <Bar dataKey="count" fill="#5D4E37" name="Times Availed" isAnimationActive={false} />
                         </BarChart>
                     </ResponsiveContainer>
                 ) : <p style={{ color: '#888', textAlign: 'center' }}>No service data</p>}
@@ -174,7 +174,7 @@ const SalesTab = ({ data }) => {
                                 <XAxis dataKey="label" tick={{ fontSize: 10 }} />
                                 <YAxis tickFormatter={v => `₱${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11 }} />
                                 <Tooltip formatter={v => formatCurrency(v)} />
-                                <Area type="monotone" dataKey="revenue" stroke="#5D4E37" fill="#D7CCC8" name="Revenue" />
+                                <Area type="monotone" dataKey="revenue" stroke="#5D4E37" fill="#D7CCC8" name="Revenue" isAnimationActive={false} />
                             </AreaChart>
                         </ResponsiveContainer>
                     ) : <p style={{ color: '#888', textAlign: 'center', marginTop: 60 }}>No sales data</p>}
@@ -205,7 +205,7 @@ const SalesTab = ({ data }) => {
                             <XAxis type="number" allowDecimals={false} />
                             <YAxis dataKey="name" type="category" width={140} tick={{ fontSize: 11 }} />
                             <Tooltip />
-                            <Bar dataKey="qty_sold" fill="#5D4E37" name="Qty Sold" />
+                            <Bar dataKey="qty_sold" fill="#5D4E37" name="Qty Sold" isAnimationActive={false} />
                         </BarChart>
                     </ResponsiveContainer>
                 ) : <p style={{ color: '#888', textAlign: 'center' }}>No product sales data</p>}
@@ -234,7 +234,7 @@ const PatientsTab = ({ data }) => {
                             <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                             <YAxis allowDecimals={false} />
                             <Tooltip />
-                            <Area type="monotone" dataKey="registrations" stroke="#5D4E37" fill="#D7CCC8" name="Registrations" />
+                            <Area type="monotone" dataKey="registrations" stroke="#5D4E37" fill="#D7CCC8" name="Registrations" isAnimationActive={false} />
                         </AreaChart>
                     </ResponsiveContainer>
                 ) : <p style={{ color: '#888', textAlign: 'center' }}>No data</p>}
@@ -302,7 +302,7 @@ const PredictionsTab = ({ data }) => {
                             <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={d => d.slice(5)} />
                             <YAxis allowDecimals={false} />
                             <Tooltip />
-                            <Bar dataKey="predicted" fill="#5D4E37" name="Predicted Appointments" />
+                            <Bar dataKey="predicted" fill="#5D4E37" name="Predicted Appointments" isAnimationActive={false} />
                         </BarChart>
                     </ResponsiveContainer>
                 ) : <p style={{ color: '#888', textAlign: 'center' }}>Insufficient historical data for forecast</p>}
@@ -481,6 +481,115 @@ const AdminReports = ({ initialTab }) => {
         setDateFrom(from); setDateTo(to);
     };
 
+    const handleExportCSV = () => {
+        const data = activeTab === 'predictions' ? predictions : tabData[activeTab];
+        if (!data) return;
+        
+        let csvContent = "data:text/csv;charset=utf-8,";
+        let rows = [];
+
+        if (activeTab === 'appointments') {
+            rows.push(["Summary Metric", "Value"]);
+            rows.push(["Total Appointments", data.summary?.total]);
+            rows.push(["Completed", data.summary?.completed]);
+            rows.push(["Pending", data.summary?.pending]);
+            rows.push(["Cancelled", data.summary?.cancelled]);
+            rows.push([]);
+            
+            rows.push(["Daily Trend", "Count"]);
+            data.trend_chart?.forEach(t => rows.push([t.label, t.count]));
+            rows.push([]);
+
+            rows.push(["Top Services", "Count"]);
+            data.top_services?.forEach(s => rows.push([s.service, s.count]));
+            rows.push([]);
+            
+            rows.push(["Top Doctors", "Count"]);
+            data.top_doctors?.forEach(d => rows.push([d.doctor, d.count]));
+        } else if (activeTab === 'services') {
+            rows.push(["Service Popularity", "Times Availed"]);
+            data.popularity_chart?.forEach(s => rows.push([s.name, s.count]));
+            rows.push([]);
+
+            rows.push(["Service", "Price", "Times Availed", "Est. Revenue", "Last Availed"]);
+            data.table?.forEach(s => rows.push([s.name, s.price, s.times_availed, s.total_revenue, s.days_since_last]));
+        } else if (activeTab === 'sales') {
+            rows.push(["Sales Summary", "Value"]);
+            rows.push(["Total Revenue", data.summary?.total_revenue]);
+            rows.push(["Transactions", data.summary?.transaction_count]);
+            rows.push(["Avg Order Value", data.summary?.avg_order_value]);
+            rows.push([]);
+
+            rows.push(["Daily Revenue Trend", "Revenue"]);
+            data.daily_trend?.forEach(t => rows.push([t.label, t.revenue]));
+            rows.push([]);
+
+            rows.push(["Top Products", "Qty Sold"]);
+            data.top_products?.forEach(p => rows.push([p.name, p.qty_sold]));
+            rows.push([]);
+            
+            rows.push(["Inventory Metric", "Value"]);
+            rows.push(["Total Products", data.inventory?.total_products]);
+            rows.push(["Total Stock Units", data.inventory?.total_stock]);
+            rows.push(["Total Inventory Value", data.inventory?.total_value]);
+            rows.push(["Low Stock", data.inventory?.low_stock_count]);
+            rows.push(["Out of Stock", data.inventory?.out_of_stock_count]);
+        } else if (activeTab === 'patients') {
+            rows.push(["Patient Summary", "Value"]);
+            rows.push(["Total Registered", data.summary?.total_clients]);
+            rows.push(["Active This Period", data.summary?.active_clients]);
+            rows.push(["New This Month", data.summary?.new_this_month]);
+            rows.push([]);
+
+            rows.push(["Registration Trend", "Registrations"]);
+            data.registration_trend?.forEach(t => rows.push([t.month, t.registrations]));
+            rows.push([]);
+
+            rows.push(["Name", "Email", "Appointments", "Reservations", "Total Spent", "Last Appt"]);
+            data.interaction_table?.forEach(p => rows.push([p.name, p.email, p.appointments, p.reservations, p.total_spent, p.last_appointment]));
+        } else if (activeTab === 'predictions') {
+            rows.push(["Appointment Forecast", "Value"]);
+            rows.push(["Predicted Next 30 Days", data.appointment_forecast?.next_30_days]);
+            rows.push(["Confidence", data.appointment_forecast?.confidence]);
+            rows.push([]);
+
+            rows.push(["Daily Forecast", "Predicted Appointments"]);
+            data.appointment_forecast?.daily_breakdown?.forEach(d => rows.push([d.date, d.predicted]));
+            rows.push([]);
+
+            rows.push(["Service Demand", "Times Availed", "Demand Level"]);
+            data.service_demand?.forEach(s => rows.push([s.service, s.times_availed, s.demand_level]));
+            rows.push([]);
+
+            rows.push(["Patient Return Likelihood", "Count"]);
+            rows.push(["Likely to Return", data.patient_return?.likely_count]);
+            rows.push(["Neutral", data.patient_return?.neutral_count]);
+            rows.push(["At Risk", data.patient_return?.at_risk_count]);
+            rows.push([]);
+
+            rows.push(["Product", "Category", "Stock", "Avg Daily Sales", "Days Remaining", "Status"]);
+            data.inventory_alerts?.forEach(p => rows.push([p.product, p.category, p.current_stock, p.avg_daily_sales, p.days_remaining, p.alert ? 'Critical' : 'Warning']));
+        }
+
+        if (rows.length === 0) return;
+
+        rows.forEach(row => {
+            csvContent += row.map(v => `"${(v || '').toString().replace(/"/g, '""')}"`).join(",") + "\r\n";
+        });
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `doc-ec-report-${activeTab}-${dateFrom}-to-${dateTo}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handlePrintPDF = () => {
+        window.print();
+    };
+
     const tabs = [
         { key: 'appointments', label: 'Appointments' },
         { key: 'services',     label: 'Services' },
@@ -491,7 +600,7 @@ const AdminReports = ({ initialTab }) => {
 
     return (
         <div className="dashboard">
-            <div className="dashboard-header">
+            <div className="dashboard-header no-print">
                 <h1>Reports & Analytics</h1>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                     {activeTab !== 'predictions' && (
@@ -503,18 +612,24 @@ const AdminReports = ({ initialTab }) => {
                             <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
                                 style={{ padding: '7px 10px', borderRadius: 6, border: '1px solid #E0D5C7', fontSize: 13 }} />
                             {['week', 'month', 'year'].map(p => (
-                                <button key={p} onClick={() => setPreset(p)}
+                                <button key={p} className="preset-btn" onClick={() => setPreset(p)}
                                     style={{ padding: '7px 12px', borderRadius: 6, border: '1px solid #E0D5C7', backgroundColor: 'white', cursor: 'pointer', fontSize: 12, color: '#5D4E37', fontWeight: 600 }}>
                                     {p.charAt(0).toUpperCase() + p.slice(1)}
                                 </button>
                             ))}
                         </>
                     )}
+                    <button className="export-btn" onClick={handleExportCSV} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 6, border: '1px solid #2e7d32', backgroundColor: 'white', color: '#2e7d32', cursor: 'pointer', fontSize: 12, fontWeight: 600, marginLeft: 'auto' }}>
+                        <FaFileCsv /> CSV
+                    </button>
+                    <button className="export-btn" onClick={handlePrintPDF} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 12px', borderRadius: 6, border: '1px solid #c62828', backgroundColor: 'white', color: '#c62828', cursor: 'pointer', fontSize: 12, fontWeight: 600 }}>
+                        <FaFilePdf /> PDF
+                    </button>
                 </div>
             </div>
 
             {/* Tab Navigation */}
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
+            <div className="no-print" style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
                 {tabs.map(tab => (
                     <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                         style={{ padding: '10px 20px', borderRadius: 8, border: activeTab === tab.key ? 'none' : '1px solid #E0D5C7', backgroundColor: activeTab === tab.key ? '#5D4E37' : 'white', color: activeTab === tab.key ? 'white' : '#5D4E37', cursor: 'pointer', fontWeight: 600, fontFamily: 'Calibri' }}>

@@ -49,6 +49,7 @@ Route::prefix('client')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/me', [ClientAccountController::class, 'me']);
         Route::get('/appointments', [AppointmentController::class, 'getClientAppointments']);
+        Route::get('/reminders', [AppointmentController::class, 'getClientReminders']);
         Route::post('/appointments', [AppointmentController::class, 'store']);
         Route::put('/appointments/{id}/reschedule', [AppointmentController::class, 'rescheduleAppointment']);
         Route::put('/appointments/{id}/cancel', [AppointmentController::class, 'cancelAppointment']);
@@ -160,11 +161,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::delete('/{id}', [DoctorScheduleController::class, 'destroy']);
     });
 
-    // Site Settings routes (admin only for updates)
-    Route::prefix('site-settings')->group(function () {
-        Route::post('/', [\App\Http\Controllers\SiteSettingController::class, 'store']);
-        Route::post('/upload', [\App\Http\Controllers\SiteSettingController::class, 'upload']);
-    });
+
 
     // Appointment management routes (admin only)
     Route::prefix('appointments')->group(function () {
@@ -221,12 +218,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [\App\Http\Controllers\Api\V1\CustomerController::class, 'store']);
     });
     
-    // Appointment management routes (admin only)
-    Route::prefix('appointments')->group(function () {
-        Route::get('/', [\App\Http\Controllers\AppointmentController::class, 'index']);
-        Route::get('/doctor/{doctorId}', [\App\Http\Controllers\AppointmentController::class, 'getDoctorAppointments']);
-        Route::put('/{id}/status', [\App\Http\Controllers\AppointmentController::class, 'updateStatus']);
-    });
+    // Doctor appointment routes (admin view — uses V1 controller)
+    Route::get('/appointments/doctor/{doctorId}', [AppointmentController::class, 'getDoctorAppointments']);
+    Route::put('/appointments/{id}/status', [AppointmentController::class, 'updateStatus']);
     
     // Sales Transaction routes (admin only - POS)
     Route::prefix('transactions')->group(function () {

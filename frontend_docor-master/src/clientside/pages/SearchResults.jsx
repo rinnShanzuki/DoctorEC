@@ -4,11 +4,13 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import axios from 'axios';
 import api from '../../config/api.config';
+import { useAuth } from '../../context/AuthContext';
 
 const SearchResults = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const query = searchParams.get('q') || '';
+    const { user } = useAuth();
 
     const [loading, setLoading] = useState(true);
     const [products, setProducts] = useState([]);
@@ -17,6 +19,10 @@ const SearchResults = () => {
     useEffect(() => {
         if (query) {
             searchAll();
+        } else {
+            setLoading(false);
+            setProducts([]);
+            setServices([]);
         }
     }, [query]);
 
@@ -30,19 +36,33 @@ const SearchResults = () => {
                 axios.get(`${api.BASE_URL}/services`)
             ]);
 
-            const allProducts = productsRes.data.data || productsRes.data || [];
-            const allServices = servicesRes.data.data || servicesRes.data || [];
+            const allProducts = productsRes.data?.data || productsRes.data || [];
+            const allServices = servicesRes.data?.data || servicesRes.data || [];
 
-            // Filter by search query
-            const searchLower = query.toLowerCase();
-            const filteredProducts = allProducts.filter(product =>
-                product.name?.toLowerCase().includes(searchLower) ||
-                product.description?.toLowerCase().includes(searchLower)
-            );
-            const filteredServices = allServices.filter(service =>
-                service.name?.toLowerCase().includes(searchLower) ||
-                service.description?.toLowerCase().includes(searchLower)
-            );
+            // Split query into words for better partial matching
+            const searchWords = query.toLowerCase().trim().split(/\s+/);
+
+            const filteredProducts = allProducts.filter(product => {
+                const searchableText = [
+                    product.name || '',
+                    product.description || '',
+                    product.category || '',
+                    product.brand || ''
+                ].join(' ').toLowerCase();
+                
+                // Ensure ALL search words are found in the searchable text
+                return searchWords.every(word => searchableText.includes(word));
+            });
+
+            const filteredServices = allServices.filter(service => {
+                const searchableText = [
+                    service.name || '',
+                    service.description || ''
+                ].join(' ').toLowerCase();
+
+                // Ensure ALL search words are found in the searchable text
+                return searchWords.every(word => searchableText.includes(word));
+            });
 
             setProducts(filteredProducts);
             setServices(filteredServices);
@@ -101,7 +121,7 @@ const SearchResults = () => {
                                         <div
                                             key={product.product_id || product.id}
                                             style={styles.card}
-                                            onClick={() => navigate(`/client-products/${product.product_id || product.id}`)}
+                                            onClick={() => navigate(user ? `/client-products/${product.product_id || product.id}` : `/products/${product.product_id || product.id}`)}
                                         >
                                             {product.image && (
                                                 <img

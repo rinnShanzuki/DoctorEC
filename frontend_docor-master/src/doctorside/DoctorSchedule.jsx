@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
-import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaClock, FaPlus, FaTrash, FaEdit, FaSyncAlt, FaTimes } from 'react-icons/fa';
+import { FaCalendarAlt, FaChevronLeft, FaChevronRight, FaClock, FaTrash, FaEdit, FaSyncAlt, FaTimes } from 'react-icons/fa';
 import './DoctorLayout.css';
 
 // Helpers
@@ -143,19 +143,7 @@ const DoctorSchedule = () => {
         }
     };
 
-    const openCreateModal = (dateOverride) => {
-        const date = dateOverride || selectedDate;
-        const dayName = DAY_NAMES[((date.getDay() + 6) % 7)]; // JS day to Mon=0
-        const defaults = clinicHours?.[dayName];
-        setEditingId(null);
-        setFormData({
-            schedule_date: toLocalDateStr(date),
-            start_time: defaults?.start || '09:00',
-            end_time: defaults?.end || '17:30',
-            status: 'available',
-        });
-        setShowModal(true);
-    };
+
 
     const openEditModal = (schedule) => {
         setEditingId(schedule.docsched_id);
@@ -175,9 +163,6 @@ const DoctorSchedule = () => {
             if (editingId) {
                 await api.put(`/doctor/schedules/${editingId}`, formData);
                 showToast('Schedule updated!', 'success');
-            } else {
-                await api.post('/doctor/schedules', formData);
-                showToast('Schedule created!', 'success');
             }
             setShowModal(false);
             fetchSchedules();
@@ -360,16 +345,6 @@ const DoctorSchedule = () => {
                     >
                         <FaSyncAlt style={{ animation: applyingWeek ? 'spin 1s linear infinite' : 'none' }} />
                         {applyingWeek ? 'Syncing...' : 'Sync Schedule'}
-                    </button>
-                    <button
-                        onClick={() => openCreateModal()}
-                        style={{
-                            backgroundColor: '#5D4E37', color: 'white', border: 'none',
-                            padding: '10px 18px', borderRadius: '8px', cursor: 'pointer',
-                            fontSize: '12px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px'
-                        }}
-                    >
-                        <FaPlus /> Add Schedule
                     </button>
                 </div>
             </div>
@@ -554,18 +529,7 @@ const DoctorSchedule = () => {
                                         <FaTrash /> Remove Day
                                     </button>
                                 </div>
-                            ) : (
-                                <button
-                                    onClick={() => openCreateModal()}
-                                    style={{
-                                        backgroundColor: '#5D4E37', color: 'white', border: 'none',
-                                        padding: '5px 12px', borderRadius: '6px', cursor: 'pointer',
-                                        fontSize: '11px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px'
-                                    }}
-                                >
-                                    <FaPlus /> Set Availability
-                                </button>
-                            )}
+                            ) : null}
                         </div>
 
                         {selectedDaySchedule ? (
@@ -672,16 +636,7 @@ const DoctorSchedule = () => {
                                     }
                                     return null;
                                 })()}
-                                <button
-                                    onClick={() => openCreateModal()}
-                                    style={{
-                                        marginTop: '12px', padding: '8px 20px', borderRadius: '6px',
-                                        border: '1px dashed #A89078', background: 'transparent',
-                                        color: '#5D4E37', cursor: 'pointer', fontSize: '12px', fontWeight: '600'
-                                    }}
-                                >
-                                    + Set Availability
-                                </button>
+                                <p style={{ fontSize: '11px', color: '#A89078', marginTop: '12px' }}>Use "Sync Schedule" to generate slots from clinic hours.</p>
                             </div>
                         )}
                     </div>
@@ -702,7 +657,7 @@ const DoctorSchedule = () => {
                     }} onClick={e => e.stopPropagation()}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <h3 style={{ ...headerStyle, fontSize: '18px', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <FaCalendarAlt /> {editingId ? 'Edit Schedule' : 'Add Schedule'}
+                                <FaCalendarAlt /> Edit Schedule
                             </h3>
                             <button onClick={() => setShowModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#999', fontSize: '16px' }}><FaTimes /></button>
                         </div>
@@ -777,7 +732,7 @@ const DoctorSchedule = () => {
                                         fontSize: '13px', fontWeight: '700', opacity: saving ? 0.6 : 1
                                     }}
                                 >
-                                    {saving ? 'Saving...' : (editingId ? 'Update Schedule' : 'Add Schedule')}
+                                    {saving ? 'Saving...' : 'Update Schedule'}
                                 </button>
                             </div>
                         </form>

@@ -22,9 +22,12 @@ class DoctorModuleController extends Controller
     public function getMyAppointments(Request $request)
     {
         $doctor = $request->user();
+        $today = Carbon::today()->toDateString();
         
         $appointments = Appointment::with(['patient', 'clientAccount', 'service', 'prescription'])
             ->where('doctor_id', $doctor->doctor_id)
+            ->whereIn('status', ['pending', 'Pending', 'approved', 'Approved', 'ongoing', 'Ongoing'])
+            ->where('appointment_date', '>=', $today)
             ->orderBy('appointment_date', 'desc')
             ->orderBy('appointment_time', 'desc')
             ->get();

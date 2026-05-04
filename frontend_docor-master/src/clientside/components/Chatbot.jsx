@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import API_CONFIG from '../../config/api.config';
+import { useSiteSettings } from '../context/SiteSettingsContext';
 
 /**
  * AI-Powered Chatbot Component (REQ030, REQ031, REQ032)
@@ -22,6 +23,8 @@ const Chatbot = () => {
     const fabRef = useRef(null);
     const location = useLocation();
     const navigate = useNavigate();
+    const { getSetting } = useSiteSettings();
+    const clinicAddress = getSetting('clinic_address', 'Strong Republic Nautical Highway, Roxas, Oriental Mindoro, Philippines, 5212');
 
     // ========== BOOKING WIZARD STATE ==========
     const [bookingActive, setBookingActive] = useState(false);
@@ -33,10 +36,8 @@ const Chatbot = () => {
     const [bookingLoading, setBookingLoading] = useState(false);
     const [bookingSubmitting, setBookingSubmitting] = useState(false);
 
-    // Hide chatbot on admin and cashier routes
-    if (location.pathname.startsWith('/admin') || location.pathname.startsWith('/cashier')) {
-        return null;
-    }
+    // Determine if chatbot should be hidden (checked after all hooks)
+    const isHiddenRoute = location.pathname.startsWith('/admin') || location.pathname.startsWith('/cashier');
 
     useEffect(() => {
         const timer = setTimeout(() => setShowPromo(false), 10000);
@@ -63,6 +64,11 @@ const Chatbot = () => {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isOpen]);
+
+    // Hide chatbot on admin and cashier routes (AFTER all hooks)
+    if (isHiddenRoute) {
+        return null;
+    }
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -234,11 +240,16 @@ const Chatbot = () => {
             );
 
             if (response.data.success) {
+                // Strip markdown formatting from AI response
+                const cleanText = response.data.message
+                    .replace(/\*\*(.*?)\*\*/g, '$1')  // **bold** → bold
+                    .replace(/\*(.*?)\*/g, '$1')       // *italic* → italic
+                    .replace(/^#{1,6}\s+/gm, '');      // ### headers → plain text
                 const botResponse = {
-                    text: response.data.message,
+                    text: cleanText,
                     sender: 'bot',
-                    // Add navigation links based on content
-                    ...detectLinks(response.data.message)
+                    // Add navigation links based on bot response AND user question
+                    ...detectLinks(response.data.message, userMessage.text)
                 };
                 setMessages(prev => [...prev, botResponse]);
             } else {
@@ -273,8 +284,10 @@ const Chatbot = () => {
      * Detect if the AI response mentions certain topics and add navigation links
      * For product recommendations, extract filter keywords (shape, category) to pass as URL params
      */
-    const detectLinks = (text) => {
+    const detectLinks = (text, userText = '') => {
         const lower = text.toLowerCase();
+        const userLower = userText.toLowerCase();
+        const combined = lower + ' ' + userLower;
 
         // Appointment detection (highest priority) — show both Book Now and page link
         if (lower.includes('appointment') || lower.includes('book') || lower.includes('schedule')) {
@@ -334,9 +347,14 @@ const Chatbot = () => {
             return { link: productUrl, linkText: '👓 View Products' };
         }
 
-        // Location/contact detection
-        if (lower.includes('location') || lower.includes('address') || lower.includes('contact') || lower.includes('find us')) {
-            return { link: '/about', linkText: '📍 Find Us' };
+        // Location/contact detection — show embedded map
+        if (['location', 'address', 'find us', 'where', 'located', 'map', 'directions'].some(kw => combined.includes(kw))) {
+            return { link: '/about', linkText: '📍 Find Us', showMap: true };
+        }
+
+        // Contact detection (no map)
+        if (['contact', 'phone', 'email', 'call'].some(kw => combined.includes(kw))) {
+            return { link: '/about', linkText: '📞 Contact Us' };
         }
 
         return {};
@@ -576,6 +594,19 @@ const Chatbot = () => {
                             <div key={index} style={msg.sender === 'bot' ? styles.messageBotWrapper : styles.messageUserWrapper}>
                                 <div style={msg.sender === 'bot' ? styles.messageBot : styles.messageUser}>
                                     <div style={{ whiteSpace: 'pre-line' }}>{msg.text}</div>
+                                    {msg.showMap && (
+                                        <div style={{ marginTop: '10px', borderRadius: '10px', overflow: 'hidden', border: '1px solid #E8D5C4' }}>
+                                            <iframe
+                                                title="Clinic Location"
+                                                src={`https://maps.google.com/maps?q=${encodeURIComponent(clinicAddress)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                                                width="100%"
+                                                height="150"
+                                                style={{ border: 0, display: 'block' }}
+                                                allowFullScreen=""
+                                                loading="lazy"
+                                            ></iframe>
+                                        </div>
+                                    )}
                                     <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                                         {msg.showBookNow && !bookingActive && (
                                             <button

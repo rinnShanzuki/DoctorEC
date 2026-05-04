@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBell } from 'react-icons/fa';
 import { adminAPI } from '../../services/api';
+import echo from '../../echo';
 
 const POLL_INTERVAL = 60000; // 60 seconds
 
@@ -36,7 +37,23 @@ const NotificationBell = () => {
     useEffect(() => {
         fetchAlerts();
         const interval = setInterval(fetchAlerts, POLL_INTERVAL);
-        return () => clearInterval(interval);
+
+        // Listen for real-time stock updates from the backend (if WebSocket is available)
+        let channel;
+        if (echo) {
+            channel = echo.channel('products');
+            channel.listen('.product.updated', (event) => {
+                console.log('Real-time stock update received via WebSocket');
+                fetchAlerts();
+            });
+        }
+
+        return () => {
+            clearInterval(interval);
+            if (channel) {
+                channel.stopListening('.product.updated');
+            }
+        };
     }, [fetchAlerts]);
 
     // Close dropdown on outside click

@@ -36,6 +36,20 @@ class ClientAccount extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    /**
+     * Append computed 'name' to all JSON/array representations
+     * so the frontend can always use user.name
+     */
+    protected $appends = ['name'];
+
+    /**
+     * Full name accessor: first_name + last_name
+     */
+    public function getNameAttribute()
+    {
+        return trim(($this->first_name ?? '') . ' ' . ($this->last_name ?? ''));
+    }
+
     public function role()
     {
         return $this->belongsTo(Role::class, 'role_id');

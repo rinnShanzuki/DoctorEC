@@ -635,7 +635,7 @@ const CashierPOS = () => {
                     </div>
                     <div class="info-row">
                         <span class="info-label">Customer:</span>
-                        <span class="info-value">${customerName}</span>
+                        <span class="info-value">${selectedCustomer ? (selectedCustomer.name || `${selectedCustomer.first_name} ${selectedCustomer.last_name}`) : customerSearchTerm || 'Walk-in'}</span>
                     </div>
                 </div>
                 
@@ -1338,7 +1338,7 @@ const CashierPOS = () => {
                             </div>
 
                             <div style={{ marginBottom: '15px' }}>
-                                <p><strong>Customer:</strong> {customerName}</p>
+                                <p><strong>Customer:</strong> {selectedCustomer ? (selectedCustomer.name || `${selectedCustomer.first_name} ${selectedCustomer.last_name}`) : customerSearchTerm || 'Walk-in'}</p>
                                 <p><strong>Payment:</strong> {paymentMethod}</p>
                             </div>
 

@@ -44,12 +44,25 @@ class DoctorScheduleController extends Controller
         try {
             Doctor::findOrFail($doctorId);
 
+            $now = Carbon::now();
+            $today = $now->toDateString();
+
             $schedules = DoctorSchedule::where('doctor_id', $doctorId)
-                ->where('schedule_date', '>=', Carbon::today())
+                ->where('schedule_date', '>=', $today)
                 ->where('status', 'available')
                 ->orderBy('schedule_date', 'asc')
                 ->orderBy('start_time', 'asc')
                 ->get();
+
+            // If today's schedule exists but current time is past its end_time,
+            // remove today from available dates so clients can't book a closed day
+            $schedules = $schedules->filter(function ($schedule) use ($now, $today) {
+                if ($schedule->schedule_date === $today) {
+                    $endTime = Carbon::parse($today . ' ' . $schedule->end_time);
+                    return $now->lt($endTime);
+                }
+                return true;
+            })->values();
 
             return $this->success($schedules, 'Doctor schedules retrieved successfully');
         } catch (\Exception $e) {
@@ -99,6 +112,10 @@ class DoctorScheduleController extends Controller
                 })
                 ->toArray();
 
+            // Determine if we need to filter past time slots (when date is today)
+            $now = Carbon::now();
+            $isToday = Carbon::parse($date)->isToday();
+
             // Generate 30-min sessions with 15-min breaks (45-min between slot starts)
             $allSlots = [];
             foreach ($schedules as $schedule) {
@@ -108,10 +125,14 @@ class DoctorScheduleController extends Controller
                 while ($start->copy()->addMinutes(30) <= $end) {
                     $slotStart = $start->format('H:i');
                     $slotEnd = $start->copy()->addMinutes(30)->format('H:i');
+
+                    // Skip past time slots if the date is today
+                    $isPast = $isToday && Carbon::parse($date . ' ' . $slotStart)->lte($now);
+
                     $allSlots[] = [
                         'time' => $slotStart,
                         'display' => Carbon::parse($slotStart)->format('g:i A') . ' - ' . Carbon::parse($slotEnd)->format('g:i A'),
-                        'available' => !in_array($slotStart, $bookedTimes),
+                        'available' => !in_array($slotStart, $bookedTimes) && !$isPast,
                     ];
                     // Move forward by 45 minutes (30-min session + 15-min break)
                     $start->addMinutes(45);

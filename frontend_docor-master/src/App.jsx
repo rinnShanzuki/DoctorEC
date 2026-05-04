@@ -46,7 +46,7 @@ import AdminClientView from './adminside/pages/AdminClientView';
 import AdminUpdates from './adminside/pages/AdminUpdates';
 import AdminHistory from './adminside/pages/AdminHistory';
 import AdminSettings from './adminside/pages/AdminSettings';
-import SiteEditor from './adminside/pages/SiteEditor';
+
 import AdminLogin from './adminside/pages/AdminLogin';
 import AdminSignup from './adminside/pages/AdminSignup';
 import CashierLayout from './adminside/layouts/CashierLayout';
@@ -56,7 +56,7 @@ import Chatbot from './clientside/components/Chatbot';
 import OnboardingGuide from './clientside/components/OnboardingGuide';
 import SignInModal from './clientside/components/SignInModal';
 import SignUpModal from './clientside/components/SignUpModal';
-import EditorControls from './clientside/components/EditorControls';
+
 import { useModal } from './context/ModalContext';
 import { LanguageProvider } from './context/LanguageContext';
 import TestConnection from './components/TestConnection';
@@ -94,7 +94,7 @@ function AppContent() {
     <Router>
       <Chatbot />
       <OnboardingGuide />
-      <EditorControls />
+
       <Routes>
         {/* Client Side Routes */}
         <Route path="/test-connection" element={<TestConnection />} />
@@ -161,7 +161,7 @@ function AppContent() {
           <Route path="doctor/:id" element={<AdminOptometrist />} />
           <Route path="inventory" element={<AdminInventory />} />
           <Route path="client-view" element={<AdminClientView />} />
-          <Route path="site-editor" element={<SiteEditor />} />
+
           <Route path="history" element={<AdminHistory />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>

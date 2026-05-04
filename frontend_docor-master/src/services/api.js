@@ -171,9 +171,8 @@ export const adminAPI = {
     getGcashQr: () => api.get('/qr-codes/gcash'),
     saveGcashQr: (qrData) => api.post('/qr-codes/gcash', qrData),
 
-    // Site Settings
+    // Site Settings (read-only)
     getSiteSettings: () => api.get('/site-settings'),
-    saveSiteSettings: (data) => api.post('/site-settings', data),
 
     // Reports & Analytics (AI-powered backend-driven)
     getReport: (tab, params = {}) => {

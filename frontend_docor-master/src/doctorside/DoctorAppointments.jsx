@@ -30,7 +30,16 @@ const DoctorAppointments = () => {
     const fetchAppointments = async () => {
         try {
             const res = await api.get('/doctor/appointments');
-            setAppointments(res.data.data || []);
+            const all = res.data.data || [];
+            // Only show active appointments (pending, approved, ongoing) from today onwards
+            const todayStr = toLocalDateStr(new Date());
+            const active = all.filter(a => {
+                const status = (a.status || '').toLowerCase();
+                const isActive = ['pending', 'approved', 'ongoing'].includes(status);
+                const isCurrent = a.appointment_date >= todayStr;
+                return isActive && isCurrent;
+            });
+            setAppointments(active);
         } catch (error) {
             console.error('Failed to fetch appointments:', error);
         } finally {

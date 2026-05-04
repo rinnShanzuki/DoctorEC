@@ -422,3 +422,40 @@ tbody tr:hover {
         grid-template-columns: 1fr;
     }
 }
+
+/* ========================= */
+/*       PRINT / PDF         */
+/* ========================= */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+
+    .dashboard, .dashboard * {
+        visibility: visible;
+    }
+
+    .dashboard {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        /* Force browser to print colors and backgrounds for SVGs */
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .chart-container, .stat-card {
+        page-break-inside: avoid;
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+    }
+    
+    .recharts-wrapper {
+        width: 100% !important;
+    }
+}

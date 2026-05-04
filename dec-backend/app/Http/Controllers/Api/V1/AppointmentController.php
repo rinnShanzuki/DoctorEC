@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Traits\ApiResponses;
 use App\Events\AppointmentUpdated;
+use App\Services\EmailService;
 use Illuminate\Http\Request;
 
 class AppointmentController extends Controller
@@ -13,11 +14,46 @@ class AppointmentController extends Controller
     use ApiResponses;
 
     /**
-     * Get all appointments with relationships
+     * Automatically cancel pending appointments that have passed their scheduled date and time.
+     */
+    private function autoCancelPastPending()
+    {
+        $now = \Carbon\Carbon::now();
+        $today = $now->toDateString();
+        $currentTime = $now->toTimeString();
+
+        $appointments = Appointment::whereIn('status', ['pending', 'Pending'])
+            ->where(function ($query) use ($today, $currentTime) {
+                $query->where('appointment_date', '<', $today)
+                      ->orWhere(function ($q) use ($today, $currentTime) {
+                          $q->where('appointment_date', '=', $today)
+                            ->where('appointment_time', '<', $currentTime);
+                      });
+            })
+            ->get();
+
+        foreach ($appointments as $appointment) {
+            $appointment->status = 'Cancelled';
+            $appointment->save();
+
+            try {
+                EmailService::sendAppointmentStatusEmail($appointment);
+            } catch (\Exception $emailErr) {
+                \Log::warning('Failed to send auto-cancellation email: ' . $emailErr->getMessage());
+            }
+
+            event(new AppointmentUpdated('cancelled', $appointment->toArray()));
+        }
+    }
+
+    /**
+     * Get all appointments with relationships (admin)
      */
     public function index()
     {
         try {
+            $this->autoCancelPastPending();
+
             $appointments = Appointment::with(['patient', 'clientAccount', 'doctor', 'service', 'prescription'])
                 ->orderBy('appointment_date', 'desc')
                 ->orderBy('appointment_time', 'desc')
@@ -60,9 +96,9 @@ class AppointmentController extends Controller
                     'clientAccount' => $appointment->clientAccount,
                     'doctor' => $appointment->doctor,
                     'service' => $appointment->service,
-                'prescription' => $appointment->prescription,
-                'created_at' => $appointment->created_at,
-                'updated_at' => $appointment->updated_at,
+                    'prescription' => $appointment->prescription,
+                    'created_at' => $appointment->created_at,
+                    'updated_at' => $appointment->updated_at,
                 ];
             });
 
@@ -73,7 +109,7 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Store a new appointment
+     * Store a new appointment (admin walk-in or client online booking)
      */
     public function store(Request $request)
     {
@@ -137,6 +173,12 @@ class AppointmentController extends Controller
                 }
 
                 $validated['patient_id'] = $patient->patient_id;
+
+                // Update client birthday if provided
+                if (!empty($validated['birthday'])) {
+                    $user->birthday = $validated['birthday'];
+                    $user->save();
+                }
             }
 
             // Remove extra fields not in the appointments table
@@ -149,9 +191,9 @@ class AppointmentController extends Controller
             $appointment = Appointment::create($appointmentData);
             $appointment->load(['patient', 'clientAccount', 'doctor', 'service']);
 
-        event(new AppointmentUpdated('created', $appointment->toArray()));
+            event(new AppointmentUpdated('created', $appointment->toArray()));
 
-        return $this->created($appointment, 'Appointment created successfully');
+            return $this->created($appointment, 'Appointment created successfully');
         } catch (\Exception $e) {
             return $this->error('Failed to create appointment: ' . $e->getMessage(), 500);
         }
@@ -178,7 +220,7 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Update an appointment
+     * Update an appointment (admin)
      */
     public function update(Request $request, $id)
     {
@@ -200,11 +242,40 @@ class AppointmentController extends Controller
             $appointment->update($validated);
             $appointment->load(['patient', 'clientAccount', 'doctor', 'service']);
 
-        event(new AppointmentUpdated('updated', $appointment->toArray()));
+            event(new AppointmentUpdated('updated', $appointment->toArray()));
 
-        return $this->success($appointment, 'Appointment updated successfully');
+            return $this->success($appointment, 'Appointment updated successfully');
         } catch (\Exception $e) {
             return $this->error('Failed to update appointment: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Update appointment status (admin) — with email notification
+     */
+    public function updateStatus(Request $request, $id)
+    {
+        try {
+            $validated = $request->validate([
+                'status' => 'required|in:Pending,Approved,Ongoing,Completed,Cancelled,pending,approved,ongoing,completed,cancelled'
+            ]);
+
+            $appointment = Appointment::findOrFail($id);
+            $appointment->status = $validated['status'];
+            $appointment->save();
+
+            // Send email notification to patient
+            try {
+                EmailService::sendAppointmentStatusEmail($appointment);
+            } catch (\Exception $emailErr) {
+                \Log::warning('Failed to send appointment status email: ' . $emailErr->getMessage());
+            }
+
+            event(new AppointmentUpdated('status_updated', $appointment->toArray()));
+
+            return $this->success($appointment, 'Appointment status updated successfully');
+        } catch (\Exception $e) {
+            return $this->error('Failed to update appointment status: ' . $e->getMessage(), 500);
         }
     }
 
@@ -219,6 +290,8 @@ class AppointmentController extends Controller
             if (!$user) {
                 return $this->error('Unauthenticated', 401);
             }
+
+            $this->autoCancelPastPending();
 
             // Fetch appointments for this client
             $appointments = Appointment::with(['doctor', 'service'])
@@ -250,7 +323,119 @@ class AppointmentController extends Controller
     }
 
     /**
-     * Delete an appointment
+     * Get upcoming reminders (appointments within 24h and 15min) for authenticated client
+     */
+    public function getClientReminders(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            if (!$user) {
+                return $this->error('Unauthenticated', 401);
+            }
+
+            $now = \Carbon\Carbon::now();
+
+            $upcoming = Appointment::with(['doctor', 'service'])
+                ->where('client_id', $user->client_id)
+                ->whereIn('status', ['Approved', 'approved'])
+                ->where('appointment_date', '>=', $now->toDateString())
+                ->orderBy('appointment_date', 'asc')
+                ->orderBy('appointment_time', 'asc')
+                ->get()
+                ->map(function ($apt) use ($now) {
+                    try {
+                        $aptDateTime = \Carbon\Carbon::parse($apt->appointment_date . ' ' . $apt->appointment_time);
+                    } catch (\Exception $e) {
+                        return null;
+                    }
+                    $minutesUntil = $now->diffInMinutes($aptDateTime, false);
+                    
+                    $apt->minutes_until = $minutesUntil;
+                    $apt->reminder_type = null;
+                    
+                    if ($minutesUntil <= 60 && $minutesUntil > 0) {
+                        // Change to 1 hour instead of 15 min for client reminders as it's more practical
+                        $apt->reminder_type = '1h';
+                    } elseif ($minutesUntil <= 1440 && $minutesUntil > 60) {
+                        $apt->reminder_type = '24h';
+                    }
+                    
+                    return $apt;
+                })
+                ->filter(function ($apt) {
+                    return $apt !== null && $apt->minutes_until > -60; // Include up to 1 hour past
+                });
+
+            return $this->success($upcoming->values(), 'Client reminders retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->error('Failed to retrieve client reminders: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Get all appointments for a specific doctor (admin view)
+     */
+    public function getDoctorAppointments($doctorId)
+    {
+        try {
+            $this->autoCancelPastPending();
+
+            $today = now()->toDateString();
+
+            $appointments = Appointment::where('doctor_id', $doctorId)
+                ->whereIn('status', ['pending', 'Pending', 'approved', 'Approved', 'ongoing', 'Ongoing'])
+                ->where('appointment_date', '>=', $today)
+                ->with(['patient', 'clientAccount', 'service', 'doctor'])
+                ->orderBy('appointment_date', 'desc')
+                ->orderBy('appointment_time', 'desc')
+                ->get();
+
+            // Transform the data for frontend
+            $appointments = $appointments->map(function ($appointment) {
+                return [
+                    'appointment_id' => $appointment->appointment_id,
+                    'appointment_date' => $appointment->appointment_date,
+                    'appointment_time' => $appointment->appointment_time,
+                    'appointment_type' => $appointment->appointment_type,
+                    'status' => $appointment->status ?? 'Pending',
+                    'notes' => $appointment->notes,
+                    'occupation' => $appointment->occupation,
+                    'patient' => $appointment->patient ? [
+                        'name' => $appointment->patient->name ?? 'N/A',
+                        'email' => $appointment->patient->email ?? null,
+                        'phone' => $appointment->patient->phone ?? null,
+                        'gender' => $appointment->patient->gender ?? null,
+                        'birthdate' => $appointment->patient->birthdate ?? null,
+                    ] : null,
+                    'clientAccount' => $appointment->clientAccount ? [
+                        'first_name' => $appointment->clientAccount->first_name,
+                        'last_name' => $appointment->clientAccount->last_name,
+                        'email' => $appointment->clientAccount->email ?? null,
+                        'phone' => $appointment->clientAccount->phone ?? null,
+                        'gender' => $appointment->clientAccount->gender ?? null,
+                        'birthdate' => $appointment->clientAccount->birthday ?? null,
+                    ] : null,
+                    'service' => $appointment->service ? [
+                        'name' => $appointment->service->name ?? 'Appointment',
+                        'price' => $appointment->service->price ?? 0,
+                    ] : null,
+                    'doctor' => $appointment->doctor ? [
+                        'doctor_id' => $appointment->doctor->doctor_id,
+                        'full_name' => $appointment->doctor->full_name ?? 'N/A',
+                    ] : null,
+                    'created_at' => $appointment->created_at->toISOString(),
+                ];
+            });
+
+            return $this->success($appointments, 'Doctor appointments retrieved successfully');
+        } catch (\Exception $e) {
+            return $this->error('Failed to retrieve appointments: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Delete an appointment (admin)
      */
     public function destroy($id)
     {
@@ -291,11 +476,20 @@ class AppointmentController extends Controller
             $appointment->appointment_date = $validated['appointment_date'];
             $appointment->appointment_time = $validated['appointment_time'];
             $appointment->status = 'pending'; // Reset to pending after reschedule
-        $appointment->save();
+            $appointment->save();
 
-        event(new AppointmentUpdated('rescheduled', $appointment->toArray()));
+            // Send email notification to patient
+            try {
+                $appointment->status = 'rescheduled'; // Temporarily for email template
+                EmailService::sendAppointmentStatusEmail($appointment);
+                $appointment->status = 'pending'; // Restore actual status
+            } catch (\Exception $emailErr) {
+                \Log::warning('Failed to send reschedule email: ' . $emailErr->getMessage());
+            }
 
-        return $this->success($appointment, 'Appointment rescheduled successfully');
+            event(new AppointmentUpdated('rescheduled', $appointment->toArray()));
+
+            return $this->success($appointment, 'Appointment rescheduled successfully');
         } catch (\Illuminate\Validation\ValidationException $e) {
             return $this->error($e->getMessage(), 422);
         } catch (\Exception $e) {
@@ -323,11 +517,18 @@ class AppointmentController extends Controller
             }
 
             $appointment->status = 'cancelled';
-        $appointment->save();
+            $appointment->save();
 
-        event(new AppointmentUpdated('cancelled', $appointment->toArray()));
+            // Send email notification to patient
+            try {
+                EmailService::sendAppointmentStatusEmail($appointment);
+            } catch (\Exception $emailErr) {
+                \Log::warning('Failed to send cancellation email: ' . $emailErr->getMessage());
+            }
 
-        return $this->success($appointment, 'Appointment cancelled successfully');
+            event(new AppointmentUpdated('cancelled', $appointment->toArray()));
+
+            return $this->success($appointment, 'Appointment cancelled successfully');
         } catch (\Exception $e) {
             return $this->error('Failed to cancel appointment: ' . $e->getMessage(), 500);
         }
